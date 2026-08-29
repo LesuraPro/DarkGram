@@ -1,109 +1,111 @@
-name: CI
+name: Build DarkGram IPA
 
 on:
-  # push:
-  #   branches: [ master ]
-
   workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Build configuration'
+        required: false
+        default: 'release_arm64'
+        type: choice
+        options:
+          - release_arm64
+          - release_universal
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-26
+    timeout-minutes: 330
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           fetch-depth: '0'
 
-      - name: Set active Xcode path
+      - name: Select Xcode
         run: |
-          XCODE_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["xcode"]);')
-          sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
+          XCODE_VERSION=$(python3 -c 'import json;print(json.load(open("versions.json"))["xcode"])')
+          echo "Requested Xcode: $XCODE_VERSION"
+          ls /Applications | grep -i '^Xcode' || true
+          sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app/Contents/Developer"
+          xcodebuild -version
+
+      - name: Inject API hash from secrets
+        env:
+          DARKGRAM_API_HASH: ${{ secrets.DARKGRAM_API_HASH }}
+        run: |
+          if [ -z "$DARKGRAM_API_HASH" ]; then
+            echo "::error::Secret DARKGRAM_API_HASH is not set in repository settings"
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json, os
+          path = "build-system/darkgram-configuration.json"
+          cfg = json.load(open(path))
+          cfg["api_hash"] = os.environ["DARKGRAM_API_HASH"]
+          json.dump(cfg, open(path, "w"), indent="\t")
+          PY
+          echo "api_hash injected (value masked)"
 
       - name: Create canonical source directory
         run: |
           set -x
           sudo mkdir -p /Users/Shared
-          cp -R $GITHUB_WORKSPACE /Users/Shared/
-          mv /Users/Shared/$(basename $GITHUB_WORKSPACE) /Users/Shared/telegram-ios
+          cp -R "$GITHUB_WORKSPACE" /Users/Shared/
+          mv "/Users/Shared/$(basename "$GITHUB_WORKSPACE")" /Users/Shared/telegram-ios
 
-      - name: Build the App
+      - name: Build the app
         run: |
           set -x
-
-          # source code paths are included in the final binary, so we need to make them stable across builds
           SOURCE_DIR=/Users/Shared/telegram-ios
-
-          # use canonical bazel root
           BAZEL_USER_ROOT="/private/var/tmp/_bazel_containerhost"
-
-          cd $SOURCE_DIR
+          cd "$SOURCE_DIR"
 
           BUILD_NUMBER_OFFSET="$(cat build_number_offset)"
-
-          export APP_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["app"]);')
-          export COMMIT_COUNT=$(git rev-list --count HEAD)
-          export COMMIT_COUNT="$(($COMMIT_COUNT+$BUILD_NUMBER_OFFSET))"
-          export BUILD_NUMBER="$COMMIT_COUNT"
-          echo "BUILD_NUMBER=$(echo $BUILD_NUMBER)" >> $GITHUB_ENV
-          echo "APP_VERSION=$(echo $APP_VERSION)" >> $GITHUB_ENV
+          APP_VERSION=$(python3 -c 'import json;print(json.load(open("versions.json"))["app"])')
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          BUILD_NUMBER="$((COMMIT_COUNT + BUILD_NUMBER_OFFSET))"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
 
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
           python3 -u build-system/Make/Make.py \
             --bazelUserRoot="$BAZEL_USER_ROOT" \
             build \
-            --configurationPath="build-system/appstore-configuration.json" \
+            --configurationPath=build-system/darkgram-configuration.json \
             --codesigningInformationPath=build-system/fake-codesigning \
-            --configuration=release_arm64 \
+            --configuration=${{ inputs.configuration || 'release_arm64' }} \
             --buildNumber="$BUILD_NUMBER"
 
-          # collect ipa
           OUTPUT_PATH="build/artifacts"
           rm -rf "$OUTPUT_PATH"
           mkdir -p "$OUTPUT_PATH"
           for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-            cp "$f" $OUTPUT_PATH/
+            cp "$f" "$OUTPUT_PATH/DarkGram.ipa"
           done
+          ls -lh "$OUTPUT_PATH"
 
-          # collect dsym
-          mkdir -p build/DSYMs
-          for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/*.dSYM; do
-            cp -R "$f" build/DSYMs/
-          done
-          zip -r "./$OUTPUT_PATH/Telegram.DSYMs.zip" build/DSYMs 1>/dev/null
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarkGram-ipa
+          path: /Users/Shared/telegram-ios/build/artifacts/*.ipa
+          if-no-files-found: warn
+          retention-days: 30
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ env.BUILD_NUMBER }}
-          release_name: Telegram ${{ env.APP_VERSION }} (${{ env.BUILD_NUMBER }})
+          name: DarkGram ${{ env.APP_VERSION }} (${{ env.BUILD_NUMBER }})
           body: |
-            An unsigned build of Telegram for iOS ${{ env.APP_VERSION }} (${{ env.BUILD_NUMBER }})
-          draft: false
-          prerelease: false
+            Unsigned DarkGram build ${{ env.APP_VERSION }} (${{ env.BUILD_NUMBER }}).
 
-      - name: Upload Release IPA
-        id: upload-release-ipa 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
-          asset_name: Telegram.ipa
-          asset_content_type: application/zip
-
-      - name: Upload Release DSYM
-        id: upload-release-dsym 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /Users/Shared/telegram-ios/build/artifacts/Telegram.DSYMs.zip
-          asset_name: Telegram.DSYMs.zip
-          asset_content_type: application/zip
+            Install with SideStore: download the IPA and sideload it with your Apple ID.
+          files: /Users/Shared/telegram-ios/build/artifacts/DarkGram.ipa
+          fail_on_unmatched_files: true

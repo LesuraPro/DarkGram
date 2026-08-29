@@ -6,7 +6,7 @@ public struct SGStatus: Equatable, Codable {
     public var status: Int64
     
     public static var `default`: SGStatus {
-        return SGStatus(status: 1)
+        return SGStatus(status: 2) // MARK: DarkGram - Pro unlocked by default
     }
     
     public init(status: Int64) {
