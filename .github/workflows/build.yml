@@ -1,6 +1,13 @@
 name: Build DarkGram IPA
 
 on:
+  # Every push to master builds an IPA. Feature work happens on branches so an
+  # unverified change can never break the known-good build on master.
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
   workflow_dispatch:
     inputs:
       configuration:
@@ -11,6 +18,11 @@ on:
         options:
           - release_arm64
           - release_universal
+
+# A build takes hours; never run two for the same branch at once.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
