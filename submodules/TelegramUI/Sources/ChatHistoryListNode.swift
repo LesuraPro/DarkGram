@@ -834,7 +834,11 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         
         self.adMessagesContext = adMessagesContext
         var adMessages: Signal<(interPostInterval: Int32?, messages: [Message], startDelay: Int32?, betweenDelay: Int32?), NoError>
-        if case .bubbles = mode, let adMessagesContext {
+        // MARK: DarkGram - sponsored messages are never displayed. Flipping this to true
+        // restores upstream behaviour; the else branch below already yields the empty state
+        // that non-bubble modes use, so nothing downstream needs to change.
+        let darkGramShowsSponsoredMessages = false
+        if darkGramShowsSponsoredMessages, case .bubbles = mode, let adMessagesContext {
             let peerId = adMessagesContext.peerId
             if peerId.namespace == Namespaces.Peer.CloudUser {
                 adMessages = .single((nil, [], nil, nil))
