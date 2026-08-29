@@ -834,11 +834,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         
         self.adMessagesContext = adMessagesContext
         var adMessages: Signal<(interPostInterval: Int32?, messages: [Message], startDelay: Int32?, betweenDelay: Int32?), NoError>
-        // MARK: DarkGram - sponsored messages are never displayed. Flipping this to true
-        // restores upstream behaviour; the else branch below already yields the empty state
-        // that non-bubble modes use, so nothing downstream needs to change.
-        let darkGramShowsSponsoredMessages = false
-        if darkGramShowsSponsoredMessages, case .bubbles = mode, let adMessagesContext {
+        if case .bubbles = mode, let adMessagesContext {
             let peerId = adMessagesContext.peerId
             if peerId.namespace == Namespaces.Peer.CloudUser {
                 adMessages = .single((nil, [], nil, nil))
@@ -930,7 +926,14 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         } else {
             adMessages = .single((nil, [], nil, nil))
         }
-        
+
+        // MARK: DarkGram - sponsored messages are never displayed. This overrides whatever the
+        // branches above produced. The empty state is the one non-bubble modes already use, so
+        // no downstream consumer sees a new case. Deleting this line restores upstream ads.
+        // Written as an override rather than a disabled branch because the project builds with
+        // warnings-as-errors, and a constant-false condition trips "will never be executed".
+        adMessages = .single((nil, [], nil, nil))
+
         let clientId = Atomic<Int32>(value: nextClientId)
         self.clientId = clientId
         nextClientId += 1
