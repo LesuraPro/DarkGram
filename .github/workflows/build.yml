@@ -46,6 +46,20 @@ jobs:
           sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app/Contents/Developer"
           xcodebuild -version
 
+      - name: Install Metal toolchain
+        run: |
+          # Xcode 26 ships the Metal compiler as a separate downloadable component that the
+          # runner image does not preinstall. Bazel's MetalCompile action (Telegram/diamond.air)
+          # fails with "cannot execute tool 'metal'" without it. Bazel schedules that action at
+          # an unpredictable point, so the failure can surface minutes or an hour into a build.
+          if xcrun --find metal >/dev/null 2>&1; then
+            echo "Metal toolchain already present"
+          else
+            xcodebuild -downloadComponent MetalToolchain \
+              || sudo xcodebuild -downloadComponent MetalToolchain
+            xcrun --find metal
+          fi
+
       - name: Inject API hash from secrets
         env:
           DARKGRAM_API_HASH: ${{ secrets.DARKGRAM_API_HASH }}
