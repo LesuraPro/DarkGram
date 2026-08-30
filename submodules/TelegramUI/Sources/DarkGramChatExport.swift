@@ -273,12 +273,40 @@ public func darkGramShowChatInfo(
         lines.append("")
         lines.append(i18n("ChatInfo.Notice", lang))
 
-        controllerInteraction.presentController(textAlertController(
-            context: context,
-            title: EnginePeer(peer).compactDisplayTitle,
-            text: lines.joined(separator: "\n"),
-            actions: [TextAlertAction(type: .defaultAction, title: strings.Common_OK, action: {})]
-        ), nil)
+        // MARK: DarkGram - how much room this chat takes. Telegram already computes this, but
+        // only on the Storage Usage screen, where you must go looking for the chat by name.
+        // Asking for a single peer keeps the scan cheap next to the whole-account sweep.
+        let _ = (context.engine.resources.collectCacheUsageStats(peerId: peerId)
+        |> deliverOnMainQueue).startStandalone(next: { cacheResult in
+            var finalLines = lines
+            if case let .result(stats) = cacheResult {
+                var total: Int64 = 0
+                for (_, categories) in stats.media {
+                    for (_, mediaSizes) in categories {
+                        for (_, size) in mediaSizes {
+                            total += size
+                        }
+                    }
+                }
+                if total > 0 {
+                    let byteFormatter = ByteCountFormatter()
+                    byteFormatter.countStyle = .file
+                    // Before the trailing blank line and the caveat that closes the summary.
+                    finalLines.insert(
+                        i18n("ChatInfo.Storage", lang) + ": " + byteFormatter.string(fromByteCount: total),
+                        at: max(0, finalLines.count - 2)
+                    )
+                }
+            }
+
+            controllerInteraction.presentController(textAlertController(
+                context: context,
+                title: EnginePeer(peer).compactDisplayTitle,
+                text: finalLines.joined(separator: "
+"),
+                actions: [TextAlertAction(type: .defaultAction, title: strings.Common_OK, action: {})]
+            ), nil)
+        })
     })
 }
 
