@@ -306,3 +306,10 @@
 "Settings.DarkGram.Notice" = "Всё ниже есть только в DarkGram. Обычные настройки Telegram продолжаются дальше по этому экрану.";
 "Settings.Protection.Title" = "Защита и контроль";
 "Settings.MoreFeatures.Notice" = "Оповещения по словам, быстрые ответы, фильтр сообщений, резервные копии сессий, иконки и бейджи.";
+"Settings.Backup.Title" = "Резервная копия настроек";
+"Settings.Backup.Export" = "Выгрузить настройки";
+"Settings.Backup.Import" = "Загрузить настройки";
+"Settings.Backup.Notice" = "Сохраняет все переключатели DarkGram в один файл. Подпись бесплатного Apple ID живёт 7 дней, так что делайте копию перед переустановкой.";
+"SettingsBackup.Export.Failed" = "Не удалось записать файл настроек.";
+"SettingsBackup.Import.Failed" = "В файле нет распознаваемых настроек.";
+"SettingsBackup.Import.Done" = "Настройки восстановлены. Перезапустите приложение, чтобы применить всё.";

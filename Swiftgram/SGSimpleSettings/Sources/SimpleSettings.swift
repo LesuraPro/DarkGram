@@ -92,6 +92,52 @@ public class SGSimpleSettings {
         // dispatchGroup.notify(queue: DispatchQueue.main) {}
     }
     
+    // MARK: DarkGram - settings backup.
+    // A free Apple ID signature lasts seven days, so the app gets reinstalled constantly and
+    // every toggle is lost each time. Keys is CaseIterable, so the whole set round-trips without
+    // a hand-maintained list that would silently drift as settings are added.
+
+    /// Serialises every known setting that currently has a stored value.
+    /// Values that JSON cannot represent are skipped rather than failing the whole export.
+    public func exportToJSON() -> Data? {
+        var payload: [String: Any] = [:]
+        let defaults = UserDefaults.standard
+        for key in Keys.allCases {
+            guard let value = defaults.object(forKey: key.rawValue) else {
+                continue
+            }
+            if JSONSerialization.isValidJSONObject([value]) {
+                payload[key.rawValue] = value
+            }
+        }
+        guard !payload.isEmpty else {
+            return nil
+        }
+        return try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+    }
+
+    /// Restores settings from a previously exported file.
+    /// Unknown keys are ignored, so a file from a newer or older build cannot inject
+    /// arbitrary values into UserDefaults. Returns how many settings were applied.
+    @discardableResult
+    public func importFromJSON(_ data: Data) -> Int {
+        guard let payload = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
+            return 0
+        }
+        let knownKeys = Set(Keys.allCases.map({ $0.rawValue }))
+        let defaults = UserDefaults.standard
+        var applied = 0
+        for (key, value) in payload where knownKeys.contains(key) {
+            defaults.set(value, forKey: key)
+            applied += 1
+        }
+        if applied > 0 {
+            defaults.synchronize()
+            self.synchronizeShared()
+        }
+        return applied
+    }
+
     public func synchronizeShared() {
         if let groupUserDefaults = UserDefaults(suiteName: APP_GROUP_IDENTIFIER) {
             groupUserDefaults.synchronize()

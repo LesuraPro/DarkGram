@@ -311,3 +311,10 @@
 "Settings.DarkGram.Notice" = "Everything below exists only in DarkGram. Standard Telegram settings continue further down this screen.";
 "Settings.Protection.Title" = "Protection and control";
 "Settings.MoreFeatures.Notice" = "Keyword alerts, quick replies, message filter, session backup, app icons and badges.";
+"Settings.Backup.Title" = "Settings backup";
+"Settings.Backup.Export" = "Export settings";
+"Settings.Backup.Import" = "Import settings";
+"Settings.Backup.Notice" = "Saves every DarkGram toggle to one file. A free Apple ID signature expires after seven days, so keep a copy before reinstalling.";
+"SettingsBackup.Export.Failed" = "Could not write the settings file.";
+"SettingsBackup.Import.Failed" = "That file holds no recognisable settings.";
+"SettingsBackup.Import.Done" = "Settings restored. Restart the app to apply everything.";
