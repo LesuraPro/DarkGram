@@ -172,6 +172,7 @@ public class SGSimpleSettings {
         case messageFilterKeywords
         case notifyKeywords
         case quickReplies
+        case contactAliases
         case inputToolbar
         case pinnedMessageNotifications
         case mentionsAndRepliesNotifications
@@ -392,6 +393,27 @@ public class SGSimpleSettings {
     }
     
     public var lastAccountFolders = UserDefaultsBackedDictionary<String, Int32>(userDefaultsKey: Keys.lastAccountFolders.rawValue, threadSafe: false)
+
+    /// MARK: DarkGram - local display names, keyed by peer id. Purely local: the contact's real
+    /// name on the server is never touched, and nothing is uploaded.
+    public var contactAliases = UserDefaultsBackedDictionary<String, String>(userDefaultsKey: Keys.contactAliases.rawValue, threadSafe: true)
+
+    /// Returns the local alias for a peer, or nil when none is set or it is blank.
+    public func contactAlias(forPeerId peerId: Int64) -> String? {
+        guard let alias = self.contactAliases[String(peerId)], !alias.isEmpty else {
+            return nil
+        }
+        return alias
+    }
+
+    public func setContactAlias(_ alias: String?, forPeerId peerId: Int64) {
+        let key = String(peerId)
+        if let alias = alias, !alias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            self.contactAliases[key] = alias.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            self.contactAliases[key] = nil
+        }
+    }
     
     @UserDefault(key: Keys.localDNSForProxyHost.rawValue)
     public var localDNSForProxyHost: Bool

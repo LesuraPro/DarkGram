@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import TelegramCore
 import TelegramPresentationData
@@ -6,6 +7,11 @@ import TelegramUIPreferences
 
 public extension EnginePeer {
     var compactDisplayTitle: String {
+        // MARK: DarkGram - a local alias replaces the real name in every place a title
+        // is drawn: chat list, chat header, message author, forward headers.
+        if let alias = SGSimpleSettings.shared.contactAlias(forPeerId: self.id.toInt64()) {
+            return alias
+        }
         switch self {
         case let .user(user):
             if let firstName = user.firstName, !firstName.isEmpty {
@@ -29,6 +35,10 @@ public extension EnginePeer {
     }
 
     func displayTitle(strings: PresentationStrings, displayOrder: PresentationPersonNameOrder) -> String {
+        // MARK: DarkGram - see compactDisplayTitle.
+        if let alias = SGSimpleSettings.shared.contactAlias(forPeerId: self.id.toInt64()) {
+            return alias
+        }
         switch self {
         case let .user(user):
             if user.id.isReplies {

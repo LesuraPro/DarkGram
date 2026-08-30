@@ -21,6 +21,7 @@ import PresentationDataUtils
 import TelegramPresentationData
 import TelegramStringFormatting
 import TextFormat
+import PromptUI
 import UndoUI
 import ShimmerEffect
 import AnimatedAvatarSetNode
@@ -1604,6 +1605,35 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 f(.default)
             }))
             actions.append(showEditHistoryAction)
+        }
+
+        // MARK: DarkGram - give the message author a local name. Purely local: the contact's
+        // real name on the server is untouched, and the alias replaces it everywhere a title
+        // is drawn because both display-title accessors consult it.
+        if let darkGramAuthor = message.author, darkGramAuthor.id != context.account.peerId {
+            let darkGramAliasLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let setAliasAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.SetAlias", darkGramAliasLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                let darkGramPeerId = darkGramAuthor.id.toInt64()
+                controllerInteraction.presentController(promptController(
+                    context: context,
+                    text: i18n("ContextMenu.SetAlias", darkGramAliasLang),
+                    subtitle: i18n("ContextMenu.SetAlias.Subtitle", darkGramAliasLang),
+                    value: SGSimpleSettings.shared.contactAlias(forPeerId: darkGramPeerId) ?? "",
+                    placeholder: EnginePeer(darkGramAuthor).compactDisplayTitle,
+                    characterLimit: 64,
+                    apply: { newAlias in
+                        // A nil value means the prompt was cancelled; an empty one means clear.
+                        guard let newAlias = newAlias else {
+                            return
+                        }
+                        SGSimpleSettings.shared.setContactAlias(newAlias, forPeerId: darkGramPeerId)
+                    }
+                ), nil)
+                f(.default)
+            }))
+            actions.append(setAliasAction)
         }
         
         var threadId: Int64?

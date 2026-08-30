@@ -303,3 +303,5 @@
 "NotifyKeywords.SubTitle" = "Get a notification whenever one of these words appears in any chat, including muted ones.";
 "QuickReplies.Title" = "Quick replies";
 "QuickReplies.SubTitle" = "Canned texts offered from the formatting toolbar above the keyboard. Tap one to insert it at the cursor.";
+"ContextMenu.SetAlias" = "Local name";
+"ContextMenu.SetAlias.Subtitle" = "Shown only to you. Leave empty to use the real name again.";
