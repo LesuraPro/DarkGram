@@ -987,24 +987,21 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 icons.append(PresentationAppIcon(name: "PremiumBlack", imageName: "PremiumBlack", isPremium: true))
                 
                 
-                // MARK: DarkGram - all variants are free; Pro gating was removed.
+                // MARK: DarkGram - distinct artwork per icon, not one shape recoloured.
                 icons = [
-                    PresentationAppIcon(name: "DGVoid", imageName: "DGVoid", isDefault: true),
-                    PresentationAppIcon(name: "DGMatrix", imageName: "DGMatrix"),
-                    PresentationAppIcon(name: "DGRoot", imageName: "DGRoot"),
-                    PresentationAppIcon(name: "DGTerminal", imageName: "DGTerminal"),
-                    PresentationAppIcon(name: "DGGlitch", imageName: "DGGlitch"),
-                    PresentationAppIcon(name: "DGAcid", imageName: "DGAcid"),
-                    PresentationAppIcon(name: "DGOnion", imageName: "DGOnion"),
-                    PresentationAppIcon(name: "DGCyber", imageName: "DGCyber"),
-                    PresentationAppIcon(name: "DGRadiation", imageName: "DGRadiation"),
-                    PresentationAppIcon(name: "DGPlasma", imageName: "DGPlasma"),
-                    PresentationAppIcon(name: "DGIce", imageName: "DGIce"),
-                    PresentationAppIcon(name: "DGBlood", imageName: "DGBlood"),
-                    PresentationAppIcon(name: "DGNeon", imageName: "DGNeon"),
-                    PresentationAppIcon(name: "DGCarbon", imageName: "DGCarbon"),
+                    PresentationAppIcon(name: "DGPlane", imageName: "DGPlane", isDefault: true),
+                    PresentationAppIcon(name: "DGSkull", imageName: "DGSkull"),
+                    PresentationAppIcon(name: "DGTerm", imageName: "DGTerm"),
+                    PresentationAppIcon(name: "DGEye", imageName: "DGEye"),
+                    PresentationAppIcon(name: "DGLock", imageName: "DGLock"),
                     PresentationAppIcon(name: "DGGhost", imageName: "DGGhost"),
-                    PresentationAppIcon(name: "DGGold", imageName: "DGGold"),
+                    PresentationAppIcon(name: "DGChip", imageName: "DGChip"),
+                    PresentationAppIcon(name: "DGKey", imageName: "DGKey"),
+                    PresentationAppIcon(name: "DGShield", imageName: "DGShield"),
+                    PresentationAppIcon(name: "DGSignal", imageName: "DGSignal"),
+                    PresentationAppIcon(name: "DGBug", imageName: "DGBug"),
+                    PresentationAppIcon(name: "DGMask", imageName: "DGMask"),
+                    PresentationAppIcon(name: "DGPrint", imageName: "DGPrint"),
                 ]
 
                 return icons

@@ -121,7 +121,6 @@ public struct PresentationResourcesSettings {
     // same violet-to-cyan gradient. renderSettingsIcon treats the artwork as a mask and fills
     // it white, so the asset is a glyph on transparency rather than a finished tile.
     public static let swiftgram = renderSettingsIcon(name: "DarkGramSettings", scaleFactor: 30.0 / 512.0, backgroundColors: [UIColor(rgb: 0x22D3EE), UIColor(rgb: 0x7C3AED)])
-    public static let swiftgramPro = renderSettingsIcon(name: "SwiftgramPro", scaleFactor: 30.0 / 256.0)
     public static let proxy = renderSettingsIcon(name: "Item List/Icons/Proxy", backgroundColors: [colorGreen])
     public static let savedMessages = renderSettingsIcon(name: "Item List/Icons/SavedMessages", backgroundColors: [colorBlue])
     public static let recentCalls = renderSettingsIcon(name: "Item List/Icons/Phone", backgroundColors: [colorGreen])
