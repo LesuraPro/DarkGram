@@ -74,7 +74,9 @@ public class SGSimpleSettings {
             { let _ = self.hideRecordingButton },
             { let _ = self.inputToolbar },
             { let _ = self.dismissedSGSuggestions },
-            { let _ = self.customAppBadge }
+            { let _ = self.customAppBadge },
+            { let _ = self.ghostMode },
+            { let _ = self.stealthStoryViews }
         ]
 
         tasks.forEach { task in
@@ -107,6 +109,8 @@ public class SGSimpleSettings {
         case outgoingPhotoQuality
         case storyStealthMode
         case canUseStealthMode
+        case ghostMode
+        case stealthStoryViews
         case disableSwipeToRecordStory
         case quickTranslateButton
         case outgoingLanguageTranslation
@@ -265,6 +269,8 @@ public class SGSimpleSettings {
         Keys.sendLargePhotos.rawValue: false,
         Keys.outgoingPhotoQuality.rawValue: 70,
         Keys.storyStealthMode.rawValue: false,
+        Keys.ghostMode.rawValue: false,
+        Keys.stealthStoryViews.rawValue: false,
         Keys.canUseStealthMode.rawValue: true,
         Keys.disableSwipeToRecordStory.rawValue: false,
         Keys.quickTranslateButton.rawValue: false,
@@ -391,6 +397,14 @@ public class SGSimpleSettings {
     
     @UserDefault(key: Keys.canUseStealthMode.rawValue)
     public var canUseStealthMode: Bool    
+
+    /// MARK: DarkGram - suppresses read receipts, typing activity and online presence.
+    @UserDefault(key: Keys.ghostMode.rawValue)
+    public var ghostMode: Bool
+
+    /// MARK: DarkGram - views stories without reporting them as seen.
+    @UserDefault(key: Keys.stealthStoryViews.rawValue)
+    public var stealthStoryViews: Bool
     
     @UserDefault(key: Keys.disableSwipeToRecordStory.rawValue)
     public var disableSwipeToRecordStory: Bool   

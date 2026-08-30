@@ -29,6 +29,7 @@ private enum SGControllerSection: Int32, SGItemListSection {
     case search
     case trending
     case content
+    case ghost
     case tabs
     case folders
     case chatList
@@ -61,6 +62,8 @@ private enum SGBoolSetting: String {
     case rememberLastFolder
     case sendLargePhotos
     case storyStealthMode
+    case ghostMode
+    case stealthStoryViews
     case disableSwipeToRecordStory
     case disableDeleteChatSwipeOption
     case quickTranslateButton
@@ -204,6 +207,20 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.toggle(id: id.count, section: .profiles, settingName: .confirmCalls, value: SGSimpleSettings.shared.confirmCalls, text: i18n("Settings.CallConfirmation", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .profiles, text: i18n("Settings.CallConfirmation.Notice", lang)))
     
+    entries.append(.header(id: id.count, section: .ghost, text: i18n("Settings.Ghost.Title", lang).uppercased(), badge: nil))
+    entries.append(.toggle(id: id.count, section: .ghost, settingName: .ghostMode, value: SGSimpleSettings.shared.ghostMode, text: i18n("Settings.Ghost.Full", lang), enabled: true))
+    entries.append(.toggle(id: id.count, section: .ghost, settingName: .stealthStoryViews, value: SGSimpleSettings.shared.stealthStoryViews || SGSimpleSettings.shared.ghostMode, text: i18n("Settings.Ghost.StealthStories", lang), enabled: !SGSimpleSettings.shared.ghostMode))
+    // Status line. The list rebuilds its entries on every toggle, so this reflects live state.
+    let ghostStatusKey: String
+    if SGSimpleSettings.shared.ghostMode {
+        ghostStatusKey = "Settings.Ghost.Status.Full"
+    } else if SGSimpleSettings.shared.stealthStoryViews {
+        ghostStatusKey = "Settings.Ghost.Status.Stories"
+    } else {
+        ghostStatusKey = "Settings.Ghost.Status.Off"
+    }
+    entries.append(.notice(id: id.count, section: .ghost, text: i18n(ghostStatusKey, lang)))
+
     entries.append(.header(id: id.count, section: .stories, text: strings.AutoDownloadSettings_Stories.uppercased(), badge: nil))
     entries.append(.toggle(id: id.count, section: .stories, settingName: .hideStories, value: SGSimpleSettings.shared.hideStories, text: i18n("Settings.Stories.Hide", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .stories, settingName: .disableSwipeToRecordStory, value: SGSimpleSettings.shared.disableSwipeToRecordStory, text: i18n("Settings.Stories.DisableSwipeToRecord", lang), enabled: true))
@@ -412,6 +429,10 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.sendLargePhotos = value
         case .storyStealthMode:
             SGSimpleSettings.shared.storyStealthMode = value
+        case .ghostMode:
+            SGSimpleSettings.shared.ghostMode = value
+        case .stealthStoryViews:
+            SGSimpleSettings.shared.stealthStoryViews = value
         case .disableSwipeToRecordStory:
             SGSimpleSettings.shared.disableSwipeToRecordStory = value
         case .quickTranslateButton:

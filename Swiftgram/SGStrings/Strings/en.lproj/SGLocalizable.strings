@@ -277,3 +277,11 @@
 "Settings.NY.Style.snow" = "Snow";
 "Settings.NY.Style.lightning" = "Lightning";
 "Settings.NY.Notice" = "Available for a limited time only!";
+
+/* DarkGram: Ghost Mode */
+"Settings.Ghost.Title" = "Ghost Mode";
+"Settings.Ghost.Full" = "Full anonymity";
+"Settings.Ghost.StealthStories" = "Stealth story viewing";
+"Settings.Ghost.Status.Full" = "Full anonymity is on. Read receipts, typing status and online presence are never sent, and stories are not reported as viewed.";
+"Settings.Ghost.Status.Stories" = "Stories are not reported as viewed. Read receipts, typing status and online presence are still sent.";
+"Settings.Ghost.Status.Off" = "Off. Others can see your read receipts, when you are typing and when you were last online.";

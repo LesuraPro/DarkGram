@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import TelegramApi
@@ -251,6 +252,12 @@ private func pushPeerReadState(network: Network, postbox: Postbox, stateManager:
                 let (channelId, accessHash) = (inputPeerChannelData.channelId, inputPeerChannelData.accessHash)
                 switch readState {
                 case let .idBased(maxIncomingReadId, _, _, _, markedUnread):
+                    // MARK: DarkGram - ghost mode withholds read receipts. Returning the read
+                    // state unchanged keeps the local unread counter correct; only the
+                    // server-side messages.readHistory push is skipped.
+                    if SGSimpleSettings.shared.ghostMode {
+                        return .single(readState)
+                    }
                     var pushSignal: Signal<Void, NoError> = network.request(Api.functions.channels.readHistory(channel: Api.InputChannel.inputChannel(.init(channelId: channelId, accessHash: accessHash)), maxId: maxIncomingReadId))
                     |> `catch` { _ -> Signal<Api.Bool, NoError> in
                         return .complete()

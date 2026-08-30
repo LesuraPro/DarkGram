@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.96863,0.53333,0.29020,1.00000",
-      "srgb:0.92941,0.21961,0.11765,1.00000"
+      "srgb:0.45098,0.28627,0.90196,1.00000",
+      "srgb:0.03922,0.04706,0.07843,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -38,8 +38,8 @@
             }
           ],
           "glass" : true,
-          "image-name" : "Default@3x 2.svg",
-          "name" : "Default@3x 2",
+          "image-name" : "Plane.svg",
+          "name" : "Plane",
           "opacity-specializations" : [
             {
               "value" : 1

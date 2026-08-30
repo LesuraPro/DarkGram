@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import TelegramApi
 import Postbox
@@ -43,8 +44,11 @@ private final class AccountPresenceManagerImpl {
     }
     
     private func updatePresence(_ isOnline: Bool) {
+        // MARK: DarkGram - ghost mode never announces presence. Forcing this false also stops
+        // the 30s keepalive timer below, so the account simply never goes online.
+        let shouldAnnounceOnline = isOnline && !SGSimpleSettings.shared.ghostMode
         let request: Signal<Api.Bool, MTRpcError>
-        if isOnline {
+        if shouldAnnounceOnline {
             let timer = SignalKitTimer(timeout: 30.0, repeat: false, completion: { [weak self] in
                 guard let strongSelf = self else {
                     return

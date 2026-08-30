@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -180,6 +181,10 @@ private func requestActivity(postbox: Postbox, network: Network, accountPeerId: 
                 let topMessageId = threadId.flatMap { Int32(clamping: $0) }
                 if topMessageId != nil {
                     flags |= 1 << 0
+                }
+                // MARK: DarkGram - ghost mode never broadcasts typing or recording activity.
+                if SGSimpleSettings.shared.ghostMode {
+                    return .complete()
                 }
                 return network.request(Api.functions.messages.setTyping(flags: flags, peer: inputPeer, topMsgId: topMessageId, action: actionFromActivity(activity)))
                 |> `catch` { _ -> Signal<Api.Bool, NoError> in
