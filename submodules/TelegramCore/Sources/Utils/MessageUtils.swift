@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import TelegramApi
@@ -391,6 +392,12 @@ public extension Message {
     }
     
     func isCopyProtected() -> Bool {
+        // MARK: DarkGram - lift content protection locally so media can be saved and
+        // text copied from restricted chats. Every caller in the app funnels through
+        // this one method, so a single check covers all of them.
+        if SGSimpleSettings.shared.bypassCopyProtection {
+            return false
+        }
         if self.flags.contains(.CopyProtected) {
             return true
         } else if let group = self.peers[self.id.peerId] as? TelegramGroup, group.flags.contains(.copyProtectionEnabled) {

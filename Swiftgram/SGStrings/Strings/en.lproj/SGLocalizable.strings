@@ -293,3 +293,5 @@
 "Settings.History.Notice" = "Deleted incoming messages stay in this chat instead of disappearing, and earlier versions of edited messages are recorded. Applies only to messages received while this is on; nothing is uploaded anywhere.";
 "ContextMenu.EditHistory" = "Edit history";
 "ContextMenu.EditHistory.Current" = "Current version:";
+"Settings.History.BypassCopyProtection" = "Ignore content protection";
+"Settings.History.BypassCopyProtection.Notice" = "Allows saving media and copying text in chats and channels where the owner disabled it. The restriction is enforced only by the app, so lifting it stays on this device.";

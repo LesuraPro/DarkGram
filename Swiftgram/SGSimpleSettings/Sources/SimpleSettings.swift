@@ -78,7 +78,8 @@ public class SGSimpleSettings {
             { let _ = self.ghostMode },
             { let _ = self.stealthStoryViews },
             { let _ = self.keepDeletedMessages },
-            { let _ = self.keepEditHistory }
+            { let _ = self.keepEditHistory },
+            { let _ = self.bypassCopyProtection }
         ]
 
         tasks.forEach { task in
@@ -115,6 +116,7 @@ public class SGSimpleSettings {
         case stealthStoryViews
         case keepDeletedMessages
         case keepEditHistory
+        case bypassCopyProtection
         case disableSwipeToRecordStory
         case quickTranslateButton
         case outgoingLanguageTranslation
@@ -277,6 +279,7 @@ public class SGSimpleSettings {
         Keys.stealthStoryViews.rawValue: false,
         Keys.keepDeletedMessages.rawValue: false,
         Keys.keepEditHistory.rawValue: false,
+        Keys.bypassCopyProtection.rawValue: false,
         Keys.canUseStealthMode.rawValue: true,
         Keys.disableSwipeToRecordStory.rawValue: false,
         Keys.quickTranslateButton.rawValue: false,
@@ -419,6 +422,10 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - record superseded texts when a message is edited.
     @UserDefault(key: Keys.keepEditHistory.rawValue)
     public var keepEditHistory: Bool
+
+    /// MARK: DarkGram - ignore content protection on restricted chats.
+    @UserDefault(key: Keys.bypassCopyProtection.rawValue)
+    public var bypassCopyProtection: Bool
     
     @UserDefault(key: Keys.disableSwipeToRecordStory.rawValue)
     public var disableSwipeToRecordStory: Bool   

@@ -67,6 +67,7 @@ private enum SGBoolSetting: String {
     case stealthStoryViews
     case keepDeletedMessages
     case keepEditHistory
+    case bypassCopyProtection
     case disableSwipeToRecordStory
     case disableDeleteChatSwipeOption
     case quickTranslateButton
@@ -228,6 +229,8 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepDeletedMessages, value: SGSimpleSettings.shared.keepDeletedMessages, text: i18n("Settings.History.KeepDeleted", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepEditHistory, value: SGSimpleSettings.shared.keepEditHistory, text: i18n("Settings.History.KeepEdits", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.History.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .bypassCopyProtection, value: SGSimpleSettings.shared.bypassCopyProtection, text: i18n("Settings.History.BypassCopyProtection", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
 
     entries.append(.header(id: id.count, section: .stories, text: strings.AutoDownloadSettings_Stories.uppercased(), badge: nil))
     entries.append(.toggle(id: id.count, section: .stories, settingName: .hideStories, value: SGSimpleSettings.shared.hideStories, text: i18n("Settings.Stories.Hide", lang), enabled: true))
@@ -445,6 +448,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.keepDeletedMessages = value
         case .keepEditHistory:
             SGSimpleSettings.shared.keepEditHistory = value
+        case .bypassCopyProtection:
+            SGSimpleSettings.shared.bypassCopyProtection = value
         case .disableSwipeToRecordStory:
             SGSimpleSettings.shared.disableSwipeToRecordStory = value
         case .quickTranslateButton:
