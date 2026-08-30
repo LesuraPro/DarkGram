@@ -32,6 +32,7 @@ private enum SGControllerSection: Int32, SGItemListSection {
     case content
     case ghost
     case messageHistory
+    case protection
     case tabs
     case folders
     case chatList
@@ -178,6 +179,39 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
         id.increment(1)
     }
     
+    // MARK: DarkGram - everything specific to this fork lives here, at the top of the screen
+    // and split by what it actually does, so a user can tell the groups apart without trying
+    // each toggle. Every group carries a description.
+    entries.append(.header(id: id.count, section: .ghost, text: i18n("Settings.DarkGram.Header", lang).uppercased(), badge: nil))
+    entries.append(.notice(id: id.count, section: .ghost, text: i18n("Settings.DarkGram.Notice", lang)))
+
+    entries.append(.header(id: id.count, section: .ghost, text: i18n("Settings.Ghost.Title", lang).uppercased(), badge: nil))
+    entries.append(.toggle(id: id.count, section: .ghost, settingName: .ghostMode, value: SGSimpleSettings.shared.ghostMode, text: i18n("Settings.Ghost.Full", lang), enabled: true))
+    entries.append(.toggle(id: id.count, section: .ghost, settingName: .stealthStoryViews, value: SGSimpleSettings.shared.stealthStoryViews || SGSimpleSettings.shared.ghostMode, text: i18n("Settings.Ghost.StealthStories", lang), enabled: !SGSimpleSettings.shared.ghostMode))
+    // Status line. The list rebuilds its entries on every toggle, so this reflects live state.
+    let ghostStatusKey: String
+    if SGSimpleSettings.shared.ghostMode {
+        ghostStatusKey = "Settings.Ghost.Status.Full"
+    } else if SGSimpleSettings.shared.stealthStoryViews {
+        ghostStatusKey = "Settings.Ghost.Status.Stories"
+    } else {
+        ghostStatusKey = "Settings.Ghost.Status.Off"
+    }
+    entries.append(.notice(id: id.count, section: .ghost, text: i18n(ghostStatusKey, lang)))
+
+    entries.append(.header(id: id.count, section: .messageHistory, text: i18n("Settings.History.Title", lang).uppercased(), badge: nil))
+    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepDeletedMessages, value: SGSimpleSettings.shared.keepDeletedMessages, text: i18n("Settings.History.KeepDeleted", lang), enabled: true))
+    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepEditHistory, value: SGSimpleSettings.shared.keepEditHistory, text: i18n("Settings.History.KeepEdits", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.History.Notice", lang)))
+
+    entries.append(.header(id: id.count, section: .protection, text: i18n("Settings.Protection.Title", lang).uppercased(), badge: nil))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .bypassCopyProtection, value: SGSimpleSettings.shared.bypassCopyProtection, text: i18n("Settings.History.BypassCopyProtection", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.ConfirmSend.Notice", lang)))
+    entries.append(.disclosure(id: id.count, section: .protection, link: .moreFeatures, text: i18n("Settings.MoreFeatures", lang)))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.MoreFeatures.Notice", lang)))
+
     entries.append(.header(id: id.count, section: .tabs, text: i18n("Settings.Tabs.Header", lang), badge: nil))
     entries.append(.toggle(id: id.count, section: .tabs, settingName: .hideTabBar, value: SGSimpleSettings.shared.hideTabBar, text: i18n("Settings.Tabs.HideTabBar", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .tabs, settingName: .showContactsTab, value: callListSettings.showContactsTab, text: i18n("Settings.Tabs.ShowContacts", lang), enabled: !SGSimpleSettings.shared.hideTabBar))
@@ -214,33 +248,6 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.toggle(id: id.count, section: .profiles, settingName: .confirmCalls, value: SGSimpleSettings.shared.confirmCalls, text: i18n("Settings.CallConfirmation", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .profiles, text: i18n("Settings.CallConfirmation.Notice", lang)))
     
-    entries.append(.header(id: id.count, section: .ghost, text: i18n("Settings.Ghost.Title", lang).uppercased(), badge: nil))
-    entries.append(.toggle(id: id.count, section: .ghost, settingName: .ghostMode, value: SGSimpleSettings.shared.ghostMode, text: i18n("Settings.Ghost.Full", lang), enabled: true))
-    entries.append(.toggle(id: id.count, section: .ghost, settingName: .stealthStoryViews, value: SGSimpleSettings.shared.stealthStoryViews || SGSimpleSettings.shared.ghostMode, text: i18n("Settings.Ghost.StealthStories", lang), enabled: !SGSimpleSettings.shared.ghostMode))
-    // Status line. The list rebuilds its entries on every toggle, so this reflects live state.
-    let ghostStatusKey: String
-    if SGSimpleSettings.shared.ghostMode {
-        ghostStatusKey = "Settings.Ghost.Status.Full"
-    } else if SGSimpleSettings.shared.stealthStoryViews {
-        ghostStatusKey = "Settings.Ghost.Status.Stories"
-    } else {
-        ghostStatusKey = "Settings.Ghost.Status.Off"
-    }
-    entries.append(.notice(id: id.count, section: .ghost, text: i18n(ghostStatusKey, lang)))
-
-    // MARK: DarkGram - the former "Pro" screen, now a plain subsection. Everything specific to
-    // this fork is reachable from this one screen rather than two rows in iOS Settings.
-    entries.append(.disclosure(id: id.count, section: .ghost, link: .moreFeatures, text: i18n("Settings.MoreFeatures", lang)))
-
-    entries.append(.header(id: id.count, section: .messageHistory, text: i18n("Settings.History.Title", lang).uppercased(), badge: nil))
-    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepDeletedMessages, value: SGSimpleSettings.shared.keepDeletedMessages, text: i18n("Settings.History.KeepDeleted", lang), enabled: true))
-    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepEditHistory, value: SGSimpleSettings.shared.keepEditHistory, text: i18n("Settings.History.KeepEdits", lang), enabled: true))
-    entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.History.Notice", lang)))
-    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .bypassCopyProtection, value: SGSimpleSettings.shared.bypassCopyProtection, text: i18n("Settings.History.BypassCopyProtection", lang), enabled: true))
-    entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
-    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
-    entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.ConfirmSend.Notice", lang)))
-
     entries.append(.header(id: id.count, section: .stories, text: strings.AutoDownloadSettings_Stories.uppercased(), badge: nil))
     entries.append(.toggle(id: id.count, section: .stories, settingName: .hideStories, value: SGSimpleSettings.shared.hideStories, text: i18n("Settings.Stories.Hide", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .stories, settingName: .disableSwipeToRecordStory, value: SGSimpleSettings.shared.disableSwipeToRecordStory, text: i18n("Settings.Stories.DisableSwipeToRecord", lang), enabled: true))

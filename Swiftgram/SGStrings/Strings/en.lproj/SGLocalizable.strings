@@ -307,3 +307,7 @@
 "ContextMenu.SetAlias.Subtitle" = "Shown only to you. Leave empty to use the real name again.";
 "ContextMenu.ExportChat" = "Export chat";
 "Settings.MoreFeatures" = "More features";
+"Settings.DarkGram.Header" = "DarkGram";
+"Settings.DarkGram.Notice" = "Everything below exists only in DarkGram. Standard Telegram settings continue further down this screen.";
+"Settings.Protection.Title" = "Protection and control";
+"Settings.MoreFeatures.Notice" = "Keyword alerts, quick replies, message filter, session backup, app icons and badges.";

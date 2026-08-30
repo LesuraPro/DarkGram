@@ -302,3 +302,7 @@
 "ContextMenu.SetAlias.Subtitle" = "Видно только вам. Оставьте пустым, чтобы вернуть настоящее имя.";
 "ContextMenu.ExportChat" = "Экспорт чата";
 "Settings.MoreFeatures" = "Дополнительно";
+"Settings.DarkGram.Header" = "DarkGram";
+"Settings.DarkGram.Notice" = "Всё ниже есть только в DarkGram. Обычные настройки Telegram продолжаются дальше по этому экрану.";
+"Settings.Protection.Title" = "Защита и контроль";
+"Settings.MoreFeatures.Notice" = "Оповещения по словам, быстрые ответы, фильтр сообщений, резервные копии сессий, иконки и бейджи.";
