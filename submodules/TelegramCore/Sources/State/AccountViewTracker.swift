@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -960,6 +961,13 @@ public final class AccountViewTracker {
                     
                     if let account = self.account {
                         let signal = (account.postbox.transaction { transaction -> Signal<Void, NoError> in
+                            // MARK: DarkGram - ghost mode never reports content consumption. This is
+                            // the call that tells a sender their one-time photo was opened or their
+                            // voice message was played; withholding it is the whole point of the mode.
+                            // The message is still marked seen locally, so the app behaves normally.
+                            if SGSimpleSettings.shared.isGhostModeActive(forPeerId: peerId.toInt64()) {
+                                return .complete()
+                            }
                             if let peer = transaction.getPeer(peerId), let inputPeer = apiInputPeer(peer) {
                                 let request: Signal<Bool, MTRpcError>
                                 switch inputPeer {
