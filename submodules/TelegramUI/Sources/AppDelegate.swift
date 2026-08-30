@@ -985,30 +985,26 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 icons.append(PresentationAppIcon(name: "PremiumBlack", imageName: "PremiumBlack", isPremium: true))
                 
                 
-                // MARK: Swiftgram
+                // MARK: DarkGram - all variants are free; Pro gating was removed.
                 icons = [
-                    PresentationAppIcon(name: "SGDefault", imageName: "SGDefault", isDefault: true),
-                    PresentationAppIcon(name: "SGBlack", imageName: "SGBlack"),
-                    PresentationAppIcon(name: "SGLegacy", imageName: "SGLegacy"),
-                    PresentationAppIcon(name: "SGInverted", imageName: "SGInverted"),
-                    PresentationAppIcon(name: "SGWhite", imageName: "SGWhite"),
-                    PresentationAppIcon(name: "SGNight", imageName: "SGNight"),
-                    PresentationAppIcon(name: "SGSky", imageName: "SGSky"),
-                    PresentationAppIcon(name: "SGTitanium", imageName: "SGTitanium"),
-                    PresentationAppIcon(isSGPro: true, name: "SGPro", imageName: "SGPro"),
-                    PresentationAppIcon(isSGPro: true, name: "SGDay", imageName: "SGDay"),
-                    PresentationAppIcon(isSGPro: true, name: "SGGold", imageName: "SGGold"),
-                    SGSimpleSettings.shared.duckyAppIconAvailable ? PresentationAppIcon(isSGPro: true, name: "SGDucky", imageName: "SGDucky") : PresentationAppIcon(name: "", imageName: ""), // Empty
-                    PresentationAppIcon(name: "SGNeon", imageName: "SGNeon"),
-                    PresentationAppIcon(name: "SGNeonBlue", imageName: "SGNeonBlue"),
-                    PresentationAppIcon(name: "SGGlass", imageName: "SGGlass"),
-                    PresentationAppIcon(name: "SGSparkling", imageName: "SGSparkling"),
+                    PresentationAppIcon(name: "DGVoid", imageName: "DGVoid", isDefault: true),
+                    PresentationAppIcon(name: "DGMatrix", imageName: "DGMatrix"),
+                    PresentationAppIcon(name: "DGRoot", imageName: "DGRoot"),
+                    PresentationAppIcon(name: "DGTerminal", imageName: "DGTerminal"),
+                    PresentationAppIcon(name: "DGGlitch", imageName: "DGGlitch"),
+                    PresentationAppIcon(name: "DGAcid", imageName: "DGAcid"),
+                    PresentationAppIcon(name: "DGOnion", imageName: "DGOnion"),
+                    PresentationAppIcon(name: "DGCyber", imageName: "DGCyber"),
+                    PresentationAppIcon(name: "DGRadiation", imageName: "DGRadiation"),
+                    PresentationAppIcon(name: "DGPlasma", imageName: "DGPlasma"),
+                    PresentationAppIcon(name: "DGIce", imageName: "DGIce"),
+                    PresentationAppIcon(name: "DGBlood", imageName: "DGBlood"),
+                    PresentationAppIcon(name: "DGNeon", imageName: "DGNeon"),
+                    PresentationAppIcon(name: "DGCarbon", imageName: "DGCarbon"),
+                    PresentationAppIcon(name: "DGGhost", imageName: "DGGhost"),
+                    PresentationAppIcon(name: "DGGold", imageName: "DGGold"),
                 ]
 
-                if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {
-                    icons.append(PresentationAppIcon(name: "SGBeta", imageName: "SGBeta"))
-                }
-                
                 return icons
             } else {
                 return []

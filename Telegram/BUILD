@@ -318,23 +318,22 @@ filegroup(
 
 # MARK: Swiftgram alternative icons
 alternate_icon_folders = [
-    "SGDefault",
-    "SGBlack",
-    "SGLegacy",
-    "SGInverted",
-    "SGWhite",
-    "SGNight",
-    "SGSky",
-    "SGTitanium",
-    "SGNeon",
-    "SGNeonBlue",
-    "SGGlass",
-    "SGSparkling",
-    "SGBeta",
-    "SGPro",
-    "SGGold",
-    "SGDucky",
-    "SGDay"
+    "DGVoid",
+    "DGMatrix",
+    "DGRoot",
+    "DGTerminal",
+    "DGGlitch",
+    "DGAcid",
+    "DGOnion",
+    "DGCyber",
+    "DGRadiation",
+    "DGPlasma",
+    "DGIce",
+    "DGBlood",
+    "DGNeon",
+    "DGCarbon",
+    "DGGhost",
+    "DGGold",
 ]
 
 composer_icon_folders = ["DarkGram"]

@@ -652,7 +652,12 @@ public struct PresentationThemeSettings: Codable {
     }
     
     public static var defaultSettings: PresentationThemeSettings {
-        return PresentationThemeSettings(theme: .builtin(.dayClassic), themePreferredBaseTheme: [:], themeSpecificAccentColors: [:], themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: .builtin(.night)), largeEmoji: true, reduceMotion: false)
+        // MARK: DarkGram - boot into the near-black night theme carrying the DarkGram violet
+        // accent, instead of Telegram's light dayClassic. Only the first-launch default changes;
+        // the theme picker still offers every built-in theme.
+        let darkGramTheme = PresentationThemeReference.builtin(.night)
+        let darkGramAccent = PresentationThemeAccentColor(index: 0, baseColor: .custom, accentColor: 0x8b5cf6)
+        return PresentationThemeSettings(theme: darkGramTheme, themePreferredBaseTheme: [:], themeSpecificAccentColors: [darkGramTheme.index: darkGramAccent], themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: .builtin(.night)), largeEmoji: true, reduceMotion: false)
     }
     
     public init(theme: PresentationThemeReference, themePreferredBaseTheme: [Int64: TelegramBaseTheme], themeSpecificAccentColors: [Int64: PresentationThemeAccentColor], themeSpecificChatWallpapers: [Int64: TelegramWallpaper], useSystemFont: Bool, fontSize: PresentationFontSize, listsFontSize: PresentationFontSize, chatBubbleSettings: PresentationChatBubbleSettings, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting, largeEmoji: Bool, reduceMotion: Bool) {
