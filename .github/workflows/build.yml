@@ -77,6 +77,16 @@ jobs:
           PY
           echo "api_hash injected (value masked)"
 
+      - name: Restore bazel disk cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /Users/Shared/darkgram-bazel-cache
+          key: bazel-disk-${{ github.ref_name }}-${{ github.sha }}
+          # Any earlier cache is a useful starting point; bazel ignores stale entries itself.
+          restore-keys: |
+            bazel-disk-${{ github.ref_name }}-
+            bazel-disk-
+
       - name: Create canonical source directory
         run: |
           set -x
@@ -101,6 +111,7 @@ jobs:
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
           python3 -u build-system/Make/Make.py \
             --bazelUserRoot="$BAZEL_USER_ROOT" \
+            --cacheDir=/Users/Shared/darkgram-bazel-cache \
             build \
             --configurationPath=build-system/darkgram-configuration.json \
             --codesigningInformationPath=build-system/fake-codesigning \
@@ -129,6 +140,28 @@ jobs:
           echo "Found archive: $IPA_SRC"
           cp "$IPA_SRC" "$OUTPUT_PATH/DarkGram.ipa"
           ls -lh "$OUTPUT_PATH"
+
+      - name: Save bazel disk cache
+        if: always()
+        run: |
+          CACHE=/Users/Shared/darkgram-bazel-cache
+          [ -d "$CACHE" ] || exit 0
+          SIZE_MB=$(du -sm "$CACHE" | cut -f1)
+          echo "disk cache: ${SIZE_MB} MB"
+          # GitHub keeps 10 GB per repository and silently drops anything larger. Rather than
+          # evicting entries one by one -- macOS find has no -printf, and a partial cache is of
+          # little use anyway -- drop an oversized cache so the next run starts clean.
+          if [ "$SIZE_MB" -gt 6000 ]; then
+            echo "over 6000 MB; discarding so the saved cache stays within the limit"
+            rm -rf "$CACHE"
+          fi
+
+      - name: Store bazel disk cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /Users/Shared/darkgram-bazel-cache
+          key: bazel-disk-${{ github.ref_name }}-${{ github.sha }}
 
       - name: Upload IPA artifact
         if: always()
