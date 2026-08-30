@@ -324,3 +324,7 @@
 "Settings.Ghost.Schedule.Notice" = "Turns Ghost Mode on automatically inside this window. A window that crosses midnight, such as 23:00 to 07:00, works as expected.";
 "Settings.KeywordAlertSound" = "Distinct sound for keyword alerts";
 "Settings.KeywordAlertSound.Notice" = "Keyword alerts use a more insistent sound than ordinary messages, so a watched word is not missed among them.";
+"ContextMenu.ContactNote" = "Note about contact";
+"ContextMenu.ContactNote.Subtitle" = "Private, stored on this device only. Leave empty to remove.";
+"ContextMenu.GhostChat" = "Ghost this chat";
+"ContextMenu.UnghostChat" = "Stop ghosting this chat";

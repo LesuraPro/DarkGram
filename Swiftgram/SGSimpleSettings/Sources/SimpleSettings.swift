@@ -465,6 +465,25 @@ public class SGSimpleSettings {
         return alias
     }
 
+    /// MARK: DarkGram - free-form private notes about a peer, keyed by peer id.
+    public var contactNotes = UserDefaultsBackedDictionary<String, String>(userDefaultsKey: Keys.contactNotes.rawValue, threadSafe: true)
+
+    public func contactNote(forPeerId peerId: Int64) -> String? {
+        guard let note = self.contactNotes[String(peerId)], !note.isEmpty else {
+            return nil
+        }
+        return note
+    }
+
+    public func setContactNote(_ note: String?, forPeerId peerId: Int64) {
+        let key = String(peerId)
+        if let note = note, !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            self.contactNotes[key] = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            self.contactNotes[key] = nil
+        }
+    }
+
     public func setContactAlias(_ alias: String?, forPeerId peerId: Int64) {
         let key = String(peerId)
         if let alias = alias, !alias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
