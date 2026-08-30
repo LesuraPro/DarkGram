@@ -1424,7 +1424,12 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                                 content.title = "DarkGram"
                             }
                             content.body = matchedMessage.text
-                            content.sound = .default
+                            // A watch word should not sound like every other message.
+                            if SGSimpleSettings.shared.keywordAlertSound {
+                                content.sound = .defaultCritical
+                            } else {
+                                content.sound = .default
+                            }
                             // Deterministic identifier: re-delivering the same message replaces the
                             // pending notification instead of stacking duplicates.
                             let identifier = "darkgram.keyword.\(matchedMessage.id.peerId.toInt64()).\(matchedMessage.id.id)"

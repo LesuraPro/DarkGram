@@ -313,3 +313,9 @@
 "SettingsBackup.Export.Failed" = "Не удалось записать файл настроек.";
 "SettingsBackup.Import.Failed" = "В файле нет распознаваемых настроек.";
 "SettingsBackup.Import.Done" = "Настройки восстановлены. Перезапустите приложение, чтобы применить всё.";
+"Settings.Ghost.Schedule" = "По расписанию";
+"Settings.Ghost.Schedule.From" = "С";
+"Settings.Ghost.Schedule.To" = "До";
+"Settings.Ghost.Schedule.Notice" = "Включает инкогнито автоматически в этот промежуток. Интервал через полночь, например с 23:00 до 07:00, работает как ожидается.";
+"Settings.KeywordAlertSound" = "Отдельный звук для оповещений";
+"Settings.KeywordAlertSound.Notice" = "Оповещения по словам звучат настойчивее обычных сообщений, чтобы отслеживаемое слово не потерялось среди них.";

@@ -318,3 +318,9 @@
 "SettingsBackup.Export.Failed" = "Could not write the settings file.";
 "SettingsBackup.Import.Failed" = "That file holds no recognisable settings.";
 "SettingsBackup.Import.Done" = "Settings restored. Restart the app to apply everything.";
+"Settings.Ghost.Schedule" = "Scheduled";
+"Settings.Ghost.Schedule.From" = "From";
+"Settings.Ghost.Schedule.To" = "Until";
+"Settings.Ghost.Schedule.Notice" = "Turns Ghost Mode on automatically inside this window. A window that crosses midnight, such as 23:00 to 07:00, works as expected.";
+"Settings.KeywordAlertSound" = "Distinct sound for keyword alerts";
+"Settings.KeywordAlertSound.Notice" = "Keyword alerts use a more insistent sound than ordinary messages, so a watched word is not missed among them.";

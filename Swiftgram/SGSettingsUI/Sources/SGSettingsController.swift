@@ -68,6 +68,8 @@ private enum SGBoolSetting: String {
     case storyStealthMode
     case ghostMode
     case stealthStoryViews
+    case ghostScheduleEnabled
+    case keywordAlertSound
     case keepDeletedMessages
     case keepEditHistory
     case bypassCopyProtection
@@ -127,6 +129,8 @@ private enum SGOneFromManySetting: String {
 //    case allChatsFolderPositionOverride
     case translationBackend
     case transcriptionBackend
+    case ghostScheduleFrom
+    case ghostScheduleTo
 }
 
 private enum SGSliderSetting: String {
@@ -202,6 +206,15 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     }
     entries.append(.notice(id: id.count, section: .ghost, text: i18n(ghostStatusKey, lang)))
 
+    entries.append(.toggle(id: id.count, section: .ghost, settingName: .ghostScheduleEnabled, value: SGSimpleSettings.shared.ghostScheduleEnabled, text: i18n("Settings.Ghost.Schedule", lang), enabled: true))
+    if SGSimpleSettings.shared.ghostScheduleEnabled {
+        entries.append(.oneFromManySelector(id: id.count, section: .ghost, settingName: .ghostScheduleFrom, text: i18n("Settings.Ghost.Schedule.From", lang), value: String(format: "%02d:00", SGSimpleSettings.shared.ghostScheduleFromHour), enabled: true))
+        entries.append(.oneFromManySelector(id: id.count, section: .ghost, settingName: .ghostScheduleTo, text: i18n("Settings.Ghost.Schedule.To", lang), value: String(format: "%02d:00", SGSimpleSettings.shared.ghostScheduleToHour), enabled: true))
+    } else {
+        id.increment(2)
+    }
+    entries.append(.notice(id: id.count, section: .ghost, text: i18n("Settings.Ghost.Schedule.Notice", lang)))
+
     entries.append(.header(id: id.count, section: .messageHistory, text: i18n("Settings.History.Title", lang).uppercased(), badge: nil))
     entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepDeletedMessages, value: SGSimpleSettings.shared.keepDeletedMessages, text: i18n("Settings.History.KeepDeleted", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepEditHistory, value: SGSimpleSettings.shared.keepEditHistory, text: i18n("Settings.History.KeepEdits", lang), enabled: true))
@@ -212,6 +225,8 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.ConfirmSend.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .keywordAlertSound, value: SGSimpleSettings.shared.keywordAlertSound, text: i18n("Settings.KeywordAlertSound", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.KeywordAlertSound.Notice", lang)))
     entries.append(.disclosure(id: id.count, section: .protection, link: .moreFeatures, text: i18n("Settings.MoreFeatures", lang)))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.MoreFeatures.Notice", lang)))
 
@@ -468,6 +483,10 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.ghostMode = value
         case .stealthStoryViews:
             SGSimpleSettings.shared.stealthStoryViews = value
+        case .ghostScheduleEnabled:
+            SGSimpleSettings.shared.ghostScheduleEnabled = value
+        case .keywordAlertSound:
+            SGSimpleSettings.shared.keywordAlertSound = value
         case .keepDeletedMessages:
             SGSimpleSettings.shared.keepDeletedMessages = value
         case .keepEditHistory:
@@ -641,6 +660,21 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
                     items.append(ActionSheetButtonItem(title: i18n("Settings.DownloadsBoost.\(value.rawValue)", presentationData.strings.baseLanguageCode), color: .accent, action: { [weak actionSheet] in
                         actionSheet?.dismissAnimated()
                         setAction(value.rawValue)
+                    }))
+                }
+            case .ghostScheduleFrom, .ghostScheduleTo:
+                // 24 plain hour choices: a time picker would need its own controller for a
+                // value that only ever has 24 possibilities.
+                let isFrom = setting == .ghostScheduleFrom
+                for hour in Int32(0) ..< Int32(24) {
+                    items.append(ActionSheetButtonItem(title: String(format: "%02d:00", hour), color: .accent, action: { [weak actionSheet] in
+                        actionSheet?.dismissAnimated()
+                        if isFrom {
+                            SGSimpleSettings.shared.ghostScheduleFromHour = hour
+                        } else {
+                            SGSimpleSettings.shared.ghostScheduleToHour = hour
+                        }
+                        simplePromise.set(true)
                     }))
                 }
             case .bottomTabStyle:

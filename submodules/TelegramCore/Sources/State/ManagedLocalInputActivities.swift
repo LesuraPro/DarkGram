@@ -183,7 +183,7 @@ private func requestActivity(postbox: Postbox, network: Network, accountPeerId: 
                     flags |= 1 << 0
                 }
                 // MARK: DarkGram - ghost mode never broadcasts typing or recording activity.
-                if SGSimpleSettings.shared.ghostMode {
+                if SGSimpleSettings.shared.isGhostModeActive(forPeerId: peer.id.toInt64()) {
                     return .complete()
                 }
                 return network.request(Api.functions.messages.setTyping(flags: flags, peer: inputPeer, topMsgId: topMessageId, action: actionFromActivity(activity)))

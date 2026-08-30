@@ -80,7 +80,9 @@ public class SGSimpleSettings {
             { let _ = self.keepDeletedMessages },
             { let _ = self.keepEditHistory },
             { let _ = self.bypassCopyProtection },
-            { let _ = self.confirmSendToGroup }
+            { let _ = self.confirmSendToGroup },
+            { let _ = self.ghostScheduleEnabled },
+            { let _ = self.perChatGhostPeerIds }
         ]
 
         tasks.forEach { task in
@@ -219,6 +221,12 @@ public class SGSimpleSettings {
         case notifyKeywords
         case quickReplies
         case contactAliases
+        case contactNotes
+        case ghostScheduleEnabled
+        case ghostScheduleFromHour
+        case ghostScheduleToHour
+        case keywordAlertSound
+        case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
         case mentionsAndRepliesNotifications
@@ -383,6 +391,11 @@ public class SGSimpleSettings {
         Keys.messageFilterKeywords.rawValue: [],
         Keys.notifyKeywords.rawValue: [],
         Keys.quickReplies.rawValue: [],
+        Keys.ghostScheduleEnabled.rawValue: false,
+        Keys.ghostScheduleFromHour.rawValue: 0,
+        Keys.ghostScheduleToHour.rawValue: 7,
+        Keys.keywordAlertSound.rawValue: true,
+        Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
         Keys.dismissedSGSuggestions.rawValue: [],
@@ -673,6 +686,68 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - canned reply texts offered from the input toolbar.
     @UserDefault(key: Keys.quickReplies.rawValue)
     public var quickReplies: [String]
+
+    /// MARK: DarkGram - turn Ghost Mode on automatically during a nightly window.
+    @UserDefault(key: Keys.ghostScheduleEnabled.rawValue)
+    public var ghostScheduleEnabled: Bool
+
+    @UserDefault(key: Keys.ghostScheduleFromHour.rawValue)
+    public var ghostScheduleFromHour: Int32
+
+    @UserDefault(key: Keys.ghostScheduleToHour.rawValue)
+    public var ghostScheduleToHour: Int32
+
+    /// MARK: DarkGram - give keyword alerts their own sound so they stand out.
+    @UserDefault(key: Keys.keywordAlertSound.rawValue)
+    public var keywordAlertSound: Bool
+
+    /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
+    @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)
+    public var perChatGhostPeerIds: [String]
+
+    /// The single source of truth for whether outgoing signals are suppressed right now.
+    /// Combines the manual switch with the optional schedule; every network seam reads this
+    /// rather than `ghostMode`, so the schedule cannot be forgotten at one of them.
+    public var isGhostModeActive: Bool {
+        if self.ghostMode {
+            return true
+        }
+        guard self.ghostScheduleEnabled else {
+            return false
+        }
+        let hour = Int32(Calendar.current.component(.hour, from: Date()))
+        let from = self.ghostScheduleFromHour
+        let to = self.ghostScheduleToHour
+        if from == to {
+            return false
+        }
+        if from < to {
+            return hour >= from && hour < to
+        }
+        // Window crosses midnight, e.g. 23 -> 7.
+        return hour >= from || hour < to
+    }
+
+    /// True when this specific peer is ghosted, either globally or by its own entry.
+    public func isGhostModeActive(forPeerId peerId: Int64) -> Bool {
+        if self.isGhostModeActive {
+            return true
+        }
+        return self.perChatGhostPeerIds.contains(String(peerId))
+    }
+
+    public func setPerChatGhost(_ enabled: Bool, forPeerId peerId: Int64) {
+        let key = String(peerId)
+        var ids = self.perChatGhostPeerIds
+        if enabled {
+            if !ids.contains(key) {
+                ids.append(key)
+            }
+        } else {
+            ids.removeAll(where: { $0 == key })
+        }
+        self.perChatGhostPeerIds = ids
+    }
     
     @UserDefault(key: Keys.inputToolbar.rawValue)
     public var inputToolbar: Bool
