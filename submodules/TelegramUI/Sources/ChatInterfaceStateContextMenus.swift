@@ -1635,6 +1635,25 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             }))
             actions.append(setAliasAction)
         }
+
+        // MARK: DarkGram - export this chat. Placed on the message menu because that is where
+        // you already are when you decide you want the history out of the app.
+        if let darkGramExportPeer = chatPresentationInterfaceState.renderedPeer?.peer {
+            let darkGramExportLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let exportAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.ExportChat", darkGramExportLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                darkGramExportChat(
+                    controllerInteraction: controllerInteraction,
+                    chatPresentationInterfaceState: chatPresentationInterfaceState,
+                    context: context,
+                    peerId: darkGramExportPeer.id,
+                    chatTitle: EnginePeer(darkGramExportPeer).compactDisplayTitle
+                )
+                f(.default)
+            }))
+            actions.append(exportAction)
+        }
         
         var threadId: Int64?
         var threadMessageCount: Int = 0

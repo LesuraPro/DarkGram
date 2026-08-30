@@ -300,3 +300,4 @@
 "QuickReplies.SubTitle" = "Заготовленные тексты из панели над клавиатурой. Нажатие вставляет текст в место курсора.";
 "ContextMenu.SetAlias" = "Локальное имя";
 "ContextMenu.SetAlias.Subtitle" = "Видно только вам. Оставьте пустым, чтобы вернуть настоящее имя.";
+"ContextMenu.ExportChat" = "Экспорт чата";
