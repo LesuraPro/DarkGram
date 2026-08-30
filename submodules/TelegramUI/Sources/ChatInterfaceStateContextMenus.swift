@@ -1715,6 +1715,24 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             }))
             actions.append(infoAction)
         }
+
+        // MARK: DarkGram - delete everything you sent here. Irreversible, so it is placed last
+        // and the confirmation names the exact count rather than asking in the abstract.
+        if let darkGramPurgePeer = chatPresentationInterfaceState.renderedPeer?.peer {
+            let darkGramPurgeLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let purgeAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("BulkDelete.Title", darkGramPurgeLang), textColor: .destructive, icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Delete"), color: theme.actionSheet.destructiveActionTextColor)
+            }, action: { _, f in
+                darkGramDeleteOwnMessages(
+                    controllerInteraction: controllerInteraction,
+                    chatPresentationInterfaceState: chatPresentationInterfaceState,
+                    context: context,
+                    peerId: darkGramPurgePeer.id
+                )
+                f(.default)
+            }))
+            actions.append(purgeAction)
+        }
         
         var threadId: Int64?
         var threadMessageCount: Int = 0

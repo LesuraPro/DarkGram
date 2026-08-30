@@ -281,3 +281,62 @@ public func darkGramShowChatInfo(
         ), nil)
     })
 }
+
+// MARK: DarkGram
+/// Deletes every message you sent in this chat, for everyone.
+///
+/// Irreversible, so it counts first and names the number in the confirmation rather than asking
+/// an abstract "are you sure". Only outgoing messages are ever touched; the other side's
+/// messages are not ours to remove. Deletion goes out in batches because the API rejects
+/// unbounded id lists.
+public func darkGramDeleteOwnMessages(
+    controllerInteraction: ChatControllerInteraction,
+    chatPresentationInterfaceState: ChatPresentationInterfaceState,
+    context: AccountContext,
+    peerId: PeerId
+) {
+    let strings = chatPresentationInterfaceState.strings
+    let lang = strings.baseLanguageCode
+
+    let collect = context.account.postbox.transaction { transaction -> [MessageId] in
+        return darkGramCollectMessages(transaction: transaction, peerId: peerId)
+            .filter({ !$0.flags.contains(.Incoming) })
+            .map({ $0.id })
+    }
+    |> deliverOnMainQueue
+
+    let _ = collect.startStandalone(next: { ids in
+        guard !ids.isEmpty else {
+            controllerInteraction.presentController(textAlertController(
+                context: context,
+                title: nil,
+                text: i18n("BulkDelete.None", lang),
+                actions: [TextAlertAction(type: .defaultAction, title: strings.Common_OK, action: {})]
+            ), nil)
+            return
+        }
+
+        controllerInteraction.presentController(textAlertController(
+            context: context,
+            title: i18n("BulkDelete.Title", lang),
+            text: i18n("BulkDelete.Confirm", lang) + " \(ids.count)",
+            actions: [
+                TextAlertAction(type: .genericAction, title: strings.Common_Cancel, action: {}),
+                TextAlertAction(type: .destructiveAction, title: i18n("BulkDelete.Action", lang), action: {
+                    // 100 at a time: the server rejects very large id lists outright.
+                    var batches: [[MessageId]] = []
+                    var index = 0
+                    while index < ids.count {
+                        batches.append(Array(ids[index ..< min(index + 100, ids.count)]))
+                        index += 100
+                    }
+                    for batch in batches {
+                        let _ = context.engine.messages.deleteMessagesInteractively(
+                            messageIds: batch, type: .forEveryone
+                        ).startStandalone()
+                    }
+                })
+            ]
+        ), nil)
+    })
+}

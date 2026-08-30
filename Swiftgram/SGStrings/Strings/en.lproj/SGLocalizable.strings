@@ -348,3 +348,7 @@
 "SettingsBackup.Diagnostics.Clean" = "The previous run exited normally.";
 "SettingsBackup.Diagnostics.Copy" = "Copy";
 "SettingsBackup.Diagnostics.Clear" = "Clear";
+"BulkDelete.Title" = "Delete all my messages";
+"BulkDelete.Confirm" = "This removes every message you sent in this chat, for everyone. It cannot be undone. Messages to delete:";
+"BulkDelete.Action" = "Delete";
+"BulkDelete.None" = "You have no messages in this chat.";

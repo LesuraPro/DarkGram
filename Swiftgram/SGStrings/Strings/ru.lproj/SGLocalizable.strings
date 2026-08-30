@@ -343,3 +343,7 @@
 "SettingsBackup.Diagnostics.Clean" = "Прошлый запуск завершился штатно.";
 "SettingsBackup.Diagnostics.Copy" = "Скопировать";
 "SettingsBackup.Diagnostics.Clear" = "Очистить";
+"BulkDelete.Title" = "Удалить все мои сообщения";
+"BulkDelete.Confirm" = "Будут удалены все ваши сообщения в этом чате, у всех участников. Отменить нельзя. Сообщений к удалению:";
+"BulkDelete.Action" = "Удалить";
+"BulkDelete.None" = "В этом чате нет ваших сообщений.";
