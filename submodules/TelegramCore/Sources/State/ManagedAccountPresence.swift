@@ -44,11 +44,19 @@ private final class AccountPresenceManagerImpl {
     }
     
     private func updatePresence(_ isOnline: Bool) {
-        // MARK: DarkGram - ghost mode never announces presence. Forcing this false also stops
-        // the 30s keepalive timer below, so the account simply never goes online.
-        let shouldAnnounceOnline = isOnline && !SGSimpleSettings.shared.isGhostModeActive
+        // MARK: DarkGram - ghost mode reports offline while the app is in use.
+        //
+        // The earlier attempt suppressed the online announcement and stopped the heartbeat with
+        // it, which failed in practice: updatePresence runs only when the online state itself
+        // changes, and toggling ghost mode is not such a change. Turning it on while already
+        // online left the server believing you were online, with nothing scheduled to correct it.
+        //
+        // Keeping the heartbeat alive fixes both directions. Every 30 seconds it re-asserts the
+        // current answer, so enabling ghost mode pushes "offline" without waiting for the app to
+        // background, and disabling it restores presence just as quickly.
+        let darkGramGhost = SGSimpleSettings.shared.isGhostModeActive
         let request: Signal<Api.Bool, MTRpcError>
-        if shouldAnnounceOnline {
+        if isOnline {
             let timer = SignalKitTimer(timeout: 30.0, repeat: false, completion: { [weak self] in
                 guard let strongSelf = self else {
                     return
@@ -57,7 +65,7 @@ private final class AccountPresenceManagerImpl {
             }, queue: self.queue)
             self.onlineTimer = timer
             timer.start()
-            request = self.network.request(Api.functions.account.updateStatus(offline: .boolFalse))
+            request = self.network.request(Api.functions.account.updateStatus(offline: darkGramGhost ? .boolTrue : .boolFalse))
         } else {
             self.onlineTimer?.invalidate()
             self.onlineTimer = nil

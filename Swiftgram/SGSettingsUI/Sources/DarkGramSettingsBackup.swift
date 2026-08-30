@@ -51,9 +51,12 @@ public func darkGramExportSettings(context: AccountContext, lang: String) {
               let settings = entry.get(PresentationThemeSettings.self) else {
             return nil
         }
-        let encoder = PostboxEncoder()
-        encoder.encodeRootObject(settings)
-        return encoder.makeData().base64EncodedString()
+        // PresentationThemeSettings is Swift-Codable, not the older PostboxCoding, so it needs
+        // the adapted coder rather than encodeRootObject.
+        guard let data = try? AdaptedPostboxEncoder().encode(settings) else {
+            return nil
+        }
+        return data.base64EncodedString()
     }
     |> deliverOnMainQueue).startStandalone(next: { themeBlob in
         darkGramWriteExport(lang: lang, themeBlob: themeBlob)
@@ -66,8 +69,7 @@ public func darkGramRestoreThemeSettings(context: AccountContext, blob: String) 
         return
     }
     let _ = context.sharedContext.accountManager.transaction { transaction -> Void in
-        let decoder = PostboxDecoder(buffer: MemoryBuffer(data: data))
-        guard let settings = decoder.decodeRootObject() as? PresentationThemeSettings else {
+        guard let settings = try? AdaptedPostboxDecoder().decode(PresentationThemeSettings.self, from: data) else {
             return
         }
         transaction.updateSharedData(ApplicationSpecificSharedDataKeys.presentationThemeSettings, { _ in

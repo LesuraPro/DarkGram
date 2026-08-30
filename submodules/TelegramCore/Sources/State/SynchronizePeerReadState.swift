@@ -288,6 +288,12 @@ private func pushPeerReadState(network: Network, postbox: Postbox, stateManager:
             default:
                 switch readState {
                 case let .idBased(maxIncomingReadId, _, _, _, markedUnread):
+                    // MARK: DarkGram - the same guard as the channel branch above. Read receipts
+                    // in one-to-one chats travel through this call, and it was left unguarded, so
+                    // the mode stayed silent in channels while still announcing every private read.
+                    if SGSimpleSettings.shared.isGhostModeActive(forPeerId: peerId.toInt64()) {
+                        return .single(readState)
+                    }
                     var pushSignal: Signal<Void, NoError> = network.request(Api.functions.messages.readHistory(peer: inputPeer, maxId: maxIncomingReadId))
                     |> map(Optional.init)
                     |> `catch` { _ -> Signal<Api.messages.AffectedMessages?, NoError> in
