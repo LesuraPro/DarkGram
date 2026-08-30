@@ -352,3 +352,4 @@
 "BulkDelete.Confirm" = "This removes every message you sent in this chat, for everyone. It cannot be undone. Messages to delete:";
 "BulkDelete.Action" = "Delete";
 "BulkDelete.None" = "You have no messages in this chat.";
+"ChatInfo.Storage" = "Cached media";

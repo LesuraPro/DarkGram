@@ -302,8 +302,7 @@ public func darkGramShowChatInfo(
             controllerInteraction.presentController(textAlertController(
                 context: context,
                 title: EnginePeer(peer).compactDisplayTitle,
-                text: finalLines.joined(separator: "
-"),
+                text: finalLines.joined(separator: "\n"),
                 actions: [TextAlertAction(type: .defaultAction, title: strings.Common_OK, action: {})]
             ), nil)
         })
