@@ -299,3 +299,5 @@
 "SendConfirmation.Send" = "Send";
 "Settings.ConfirmSend" = "Confirm sending to groups";
 "Settings.ConfirmSend.Notice" = "Asks for confirmation before posting into a group or channel, naming the chat. One-to-one chats are never interrupted.";
+"NotifyKeywords.Title" = "Keyword alerts";
+"NotifyKeywords.SubTitle" = "Get a notification whenever one of these words appears in any chat, including muted ones.";

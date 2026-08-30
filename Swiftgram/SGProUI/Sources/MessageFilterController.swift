@@ -55,20 +55,40 @@ struct MessageFilterKeywordInputView: View {
 }
 
 @available(iOS 13.0, *)
+// MARK: DarkGram - the same editor drives two independent word lists: the original
+// hide-these-messages filter, and the notify-me-about-these watch.
+public enum SGKeywordListKind {
+    case filter
+    case notify
+}
+
 struct MessageFilterView: View {
     weak var wrapperController: LegacyController?
     @Environment(\.lang) var lang: String
-    
+
+    let kind: SGKeywordListKind
+
     @State private var newKeyword: String = ""
     @State private var keywords: [String] {
         didSet {
-            SGSimpleSettings.shared.messageFilterKeywords = keywords
+            switch kind {
+            case .filter:
+                SGSimpleSettings.shared.messageFilterKeywords = keywords
+            case .notify:
+                SGSimpleSettings.shared.notifyKeywords = keywords
+            }
         }
     }
-    
-    init(wrapperController: LegacyController?) {
+
+    init(wrapperController: LegacyController?, kind: SGKeywordListKind = .filter) {
         self.wrapperController = wrapperController
-        _keywords = State(initialValue: SGSimpleSettings.shared.messageFilterKeywords)
+        self.kind = kind
+        switch kind {
+        case .filter:
+            _keywords = State(initialValue: SGSimpleSettings.shared.messageFilterKeywords)
+        case .notify:
+            _keywords = State(initialValue: SGSimpleSettings.shared.notifyKeywords)
+        }
     }
     
     var bodyContent: some View {
@@ -80,11 +100,11 @@ struct MessageFilterView: View {
                             .font(.system(size: 50))
                             .foregroundColor(.secondary)
                         
-                        Text("MessageFilter.Title".i18n(lang))
+                        Text((kind == .notify ? "NotifyKeywords.Title" : "MessageFilter.Title").i18n(lang))
                             .font(.title)
                             .bold()
                         
-                        Text("MessageFilter.SubTitle".i18n(lang))
+                        Text((kind == .notify ? "NotifyKeywords.SubTitle" : "MessageFilter.SubTitle").i18n(lang))
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -155,7 +175,7 @@ struct MessageFilterView: View {
 }
 
 @available(iOS 13.0, *)
-public func sgMessageFilterController(presentationData: PresentationData? = nil) -> ViewController {
+public func sgMessageFilterController(presentationData: PresentationData? = nil, kind: SGKeywordListKind = .filter) -> ViewController {
     let theme = presentationData?.theme ?? (UITraitCollection.current.userInterfaceStyle == .dark ? defaultDarkColorPresentationTheme : defaultPresentationTheme)
     let strings = presentationData?.strings ?? defaultPresentationStrings
 
@@ -171,7 +191,7 @@ public func sgMessageFilterController(presentationData: PresentationData? = nil)
     let swiftUIView = SGSwiftUIView<MessageFilterView>(
         legacyController: legacyController,
         content: {
-            MessageFilterView(wrapperController: legacyController)
+            MessageFilterView(wrapperController: legacyController, kind: kind)
         }
     )
     let controller = UIHostingController(rootView: swiftUIView, ignoreSafeArea: true)

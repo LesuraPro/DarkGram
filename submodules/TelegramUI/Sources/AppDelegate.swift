@@ -251,6 +251,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private var contextValue: AuthorizedApplicationContext?
     private let context = Promise<AuthorizedApplicationContext?>()
     private let contextDisposable = MetaDisposable()
+    // MARK: DarkGram - keyword watch subscription, replaced whenever the account changes.
+    private let darkGramKeywordDisposable = MetaDisposable()
     
     private var authContextValue: UnauthorizedApplicationContext?
     private let authContext = Promise<UnauthorizedApplicationContext?>()
@@ -1408,6 +1410,27 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     // MARK: Swiftgram
                     updateSGWebSettingsInteractivelly(context: context.context)
                     updateSGGHSettingsInteractivelly(context: context.context)
+
+                    // MARK: DarkGram - raise a local notification when a watched keyword appears.
+                    // The signal fires for muted chats too, which is the point: a keyword watch
+                    // exists precisely to surface something from a channel you keep silent.
+                    self.darkGramKeywordDisposable.set((context.context.account.stateManager.darkGramKeywordMessages
+                    |> deliverOnMainQueue).start(next: { matchedMessages in
+                        for matchedMessage in matchedMessages {
+                            let content = UNMutableNotificationContent()
+                            if let peer = matchedMessage.peers[matchedMessage.id.peerId] {
+                                content.title = EnginePeer(peer).compactDisplayTitle
+                            } else {
+                                content.title = "DarkGram"
+                            }
+                            content.body = matchedMessage.text
+                            content.sound = .default
+                            // Deterministic identifier: re-delivering the same message replaces the
+                            // pending notification instead of stacking duplicates.
+                            let identifier = "darkgram.keyword.\(matchedMessage.id.peerId.toInt64()).\(matchedMessage.id.id)"
+                            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil), withCompletionHandler: nil)
+                        }
+                    }))
                     let _ = (context.context.sharedContext.presentationData.start(next: { presentationData in
                         SGLocalizationManager.shared.downloadLocale(presentationData.strings.baseLanguageCode)
                     }))

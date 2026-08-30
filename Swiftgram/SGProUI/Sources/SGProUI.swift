@@ -28,6 +28,7 @@ private enum SGProControllerSection: Int32, SGItemListSection {
 private enum SGProDisclosureLink: String {
     case sessionBackupManager
     case messageFilter
+    case notifyKeywords
     case appIcons
     case appBages
 }
@@ -55,6 +56,8 @@ private func SGProControllerEntries(presentationData: PresentationData) -> [SGPr
     
     entries.append(.disclosure(id: id.count, section: .base, link: .sessionBackupManager, text: "SessionBackup.Title".i18n(lang)))
     entries.append(.disclosure(id: id.count, section: .base, link: .messageFilter, text: "MessageFilter.Title".i18n(lang)))
+    // MARK: DarkGram - the mirror of the filter: words that should raise a notification.
+    entries.append(.disclosure(id: id.count, section: .base, link: .notifyKeywords, text: "NotifyKeywords.Title".i18n(lang)))
     entries.append(.toggle(id: id.count, section: .base, settingName: .inputToolbar, value: SGSimpleSettings.shared.inputToolbar, text: "InputToolbar.Title".i18n(lang), enabled: true))
     
     entries.append(.header(id: id.count, section: .notifications, text: presentationData.strings.Notifications_Title.uppercased(), badge: nil))
@@ -135,6 +138,8 @@ public func sgProController(context: AccountContext) -> ViewController {
                 pushControllerImpl?(sgSessionBackupManagerController(context: context, presentationData: presentationData))
             case .messageFilter:
                 pushControllerImpl?(sgMessageFilterController(presentationData: presentationData))
+            case .notifyKeywords:
+                pushControllerImpl?(sgMessageFilterController(presentationData: presentationData, kind: .notify))
             case .appIcons:
                 pushControllerImpl?(themeSettingsController(context: context, focusOnItemTag: .icon))
             case .appBages:

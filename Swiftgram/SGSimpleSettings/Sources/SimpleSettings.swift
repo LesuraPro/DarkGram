@@ -170,6 +170,7 @@ public class SGSimpleSettings {
         case videoPIPSwipeDirection
         case legacyNotificationsFix
         case messageFilterKeywords
+        case notifyKeywords
         case inputToolbar
         case pinnedMessageNotifications
         case mentionsAndRepliesNotifications
@@ -332,6 +333,7 @@ public class SGSimpleSettings {
         Keys.confirmCalls.rawValue: true,
         Keys.videoPIPSwipeDirection.rawValue: VideoPIPSwipeDirection.up.rawValue,
         Keys.messageFilterKeywords.rawValue: [],
+        Keys.notifyKeywords.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
         Keys.dismissedSGSuggestions.rawValue: [],
@@ -592,6 +594,11 @@ public class SGSimpleSettings {
     
     @UserDefault(key: Keys.messageFilterKeywords.rawValue)
     public var messageFilterKeywords: [String]
+
+    /// MARK: DarkGram - words that raise a local notification wherever they appear,
+    /// including in muted chats.
+    @UserDefault(key: Keys.notifyKeywords.rawValue)
+    public var notifyKeywords: [String]
     
     @UserDefault(key: Keys.inputToolbar.rawValue)
     public var inputToolbar: Bool
