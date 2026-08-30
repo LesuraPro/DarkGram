@@ -1,3 +1,5 @@
+import SGStrings
+import SGSimpleSettings
 import Foundation
 import UIKit
 import SwiftSignalKit
@@ -138,6 +140,22 @@ func chatContextMenuItems(context: AccountContext, peerId: EnginePeer.Id, promoI
                     }
 
                     var items: [ContextMenuItem] = []
+
+                    // MARK: DarkGram - a ghost-mode switch reachable from the chat list itself.
+                    // The title bar's only tappable control already toggles the passcode lock, and
+                    // adding a second control there means laying out a component that cannot be
+                    // checked without a device; long-press is an established extension point that
+                    // needs no layout at all.
+                    let darkGramGhostOn = SGSimpleSettings.shared.ghostMode
+                    let darkGramMenuLang = presentationData.strings.baseLanguageCode
+                    items.append(.action(ContextMenuActionItem(
+                        text: (darkGramGhostOn ? "👻 " : "") + i18n(darkGramGhostOn ? "ChatList.Ghost.Disable" : "ChatList.Ghost.Enable", darkGramMenuLang),
+                        icon: { theme in generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Smile"), color: theme.contextMenu.primaryColor) },
+                        action: { _, f in
+                            SGSimpleSettings.shared.ghostMode = !darkGramGhostOn
+                            f(.default)
+                        }
+                    )))
 
                     if case let .search(search) = source {
                         switch search {

@@ -348,3 +348,5 @@
 "BulkDelete.Action" = "Удалить";
 "BulkDelete.None" = "В этом чате нет ваших сообщений.";
 "ChatInfo.Storage" = "Медиа в кэше";
+"ChatList.Ghost.Enable" = "Включить инкогнито";
+"ChatList.Ghost.Disable" = "Выключить инкогнито";

@@ -353,3 +353,5 @@
 "BulkDelete.Action" = "Delete";
 "BulkDelete.None" = "You have no messages in this chat.";
 "ChatInfo.Storage" = "Cached media";
+"ChatList.Ghost.Enable" = "Turn on Ghost Mode";
+"ChatList.Ghost.Disable" = "Turn off Ghost Mode";
