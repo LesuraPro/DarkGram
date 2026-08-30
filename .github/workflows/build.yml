@@ -110,9 +110,24 @@ jobs:
           OUTPUT_PATH="build/artifacts"
           rm -rf "$OUTPUT_PATH"
           mkdir -p "$OUTPUT_PATH"
-          for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-            cp "$f" "$OUTPUT_PATH/DarkGram.ipa"
-          done
+
+          # This fork builds //Telegram:Swiftgram, so the archive lands at
+          # bazel-bin/Telegram/Swiftgram.ipa. The upstream workflow globbed for a
+          # Telegram.ipa path that no longer exists here, and because an unmatched glob
+          # expands to itself the build "succeeded" and then died on cp. Search for the
+          # archive instead of hard-coding a name, and fail loudly if there is none.
+          # -L is required: bazel-bin is a symlink into bazel-out.
+          IPA_SRC="$(find -L bazel-bin/Telegram -maxdepth 1 -name '*.ipa' -type f 2>/dev/null | head -1)"
+          if [ -z "$IPA_SRC" ]; then
+            IPA_SRC="$(find -L bazel-out -path '*/bin/Telegram/*.ipa' -type f 2>/dev/null | head -1)"
+          fi
+          if [ -z "$IPA_SRC" ]; then
+            echo "::error::Build reported success but produced no .ipa"
+            ls -la bazel-bin/Telegram 2>/dev/null || true
+            exit 1
+          fi
+          echo "Found archive: $IPA_SRC"
+          cp "$IPA_SRC" "$OUTPUT_PATH/DarkGram.ipa"
           ls -lh "$OUTPUT_PATH"
 
       - name: Upload IPA artifact
