@@ -82,7 +82,8 @@ public class SGSimpleSettings {
             { let _ = self.bypassCopyProtection },
             { let _ = self.confirmSendToGroup },
             { let _ = self.ghostScheduleEnabled },
-            { let _ = self.perChatGhostPeerIds }
+            { let _ = self.perChatGhostPeerIds },
+            { let _ = self.keywordAlertSound }
         ]
 
         tasks.forEach { task in
@@ -453,23 +454,47 @@ public class SGSimpleSettings {
     
     public var lastAccountFolders = UserDefaultsBackedDictionary<String, Int32>(userDefaultsKey: Keys.lastAccountFolders.rawValue, threadSafe: false)
 
-    /// MARK: DarkGram - local display names, keyed by peer id. Purely local: the contact's real
-    /// name on the server is never touched, and nothing is uploaded.
-    public var contactAliases = UserDefaultsBackedDictionary<String, String>(userDefaultsKey: Keys.contactAliases.rawValue, threadSafe: true)
 
     /// Returns the local alias for a peer, or nil when none is set or it is blank.
+    // MARK: DarkGram
+    // Display-title lookup runs on every name drawn, concurrently from many threads.
+    // UserDefaultsBackedDictionary cannot serve that: its lazy load mutates the cached
+    // container while holding only a READ lock, so concurrent first-touches race and corrupt
+    // it. This snapshot is plain immutable state behind a real mutex, refreshed on write.
+    private static let aliasCacheLock = NSLock()
+    private static var aliasCache: [String: String]?
+
+    private func aliasSnapshot() -> [String: String] {
+        SGSimpleSettings.aliasCacheLock.lock()
+        defer { SGSimpleSettings.aliasCacheLock.unlock() }
+        if let cached = SGSimpleSettings.aliasCache {
+            return cached
+        }
+        let loaded = (UserDefaults.standard.dictionary(forKey: Keys.contactAliases.rawValue) as? [String: String]) ?? [:]
+        SGSimpleSettings.aliasCache = loaded
+        return loaded
+    }
+
+    private func invalidateAliasCache() {
+        SGSimpleSettings.aliasCacheLock.lock()
+        SGSimpleSettings.aliasCache = nil
+        SGSimpleSettings.aliasCacheLock.unlock()
+    }
+
     public func contactAlias(forPeerId peerId: Int64) -> String? {
-        guard let alias = self.contactAliases[String(peerId)], !alias.isEmpty else {
+        let snapshot = self.aliasSnapshot()
+        guard let alias = snapshot[String(peerId)], !alias.isEmpty else {
             return nil
         }
         return alias
     }
 
     /// MARK: DarkGram - free-form private notes about a peer, keyed by peer id.
-    public var contactNotes = UserDefaultsBackedDictionary<String, String>(userDefaultsKey: Keys.contactNotes.rawValue, threadSafe: true)
-
+    /// Read straight from UserDefaults for the same reason aliases are: the backing dictionary
+    /// type mutates its cache under a read lock, which is unsafe under concurrency.
     public func contactNote(forPeerId peerId: Int64) -> String? {
-        guard let note = self.contactNotes[String(peerId)], !note.isEmpty else {
+        let stored = (UserDefaults.standard.dictionary(forKey: Keys.contactNotes.rawValue) as? [String: String]) ?? [:]
+        guard let note = stored[String(peerId)], !note.isEmpty else {
             return nil
         }
         return note
@@ -477,20 +502,27 @@ public class SGSimpleSettings {
 
     public func setContactNote(_ note: String?, forPeerId peerId: Int64) {
         let key = String(peerId)
-        if let note = note, !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            self.contactNotes[key] = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        var stored = (UserDefaults.standard.dictionary(forKey: Keys.contactNotes.rawValue) as? [String: String]) ?? [:]
+        let trimmed = note?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed = trimmed, !trimmed.isEmpty {
+            stored[key] = trimmed
         } else {
-            self.contactNotes[key] = nil
+            stored.removeValue(forKey: key)
         }
+        UserDefaults.standard.set(stored, forKey: Keys.contactNotes.rawValue)
     }
 
     public func setContactAlias(_ alias: String?, forPeerId peerId: Int64) {
         let key = String(peerId)
-        if let alias = alias, !alias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            self.contactAliases[key] = alias.trimmingCharacters(in: .whitespacesAndNewlines)
+        var stored = (UserDefaults.standard.dictionary(forKey: Keys.contactAliases.rawValue) as? [String: String]) ?? [:]
+        let trimmed = alias?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed = trimmed, !trimmed.isEmpty {
+            stored[key] = trimmed
         } else {
-            self.contactAliases[key] = nil
+            stored.removeValue(forKey: key)
         }
+        UserDefaults.standard.set(stored, forKey: Keys.contactAliases.rawValue)
+        self.invalidateAliasCache()
     }
     
     @UserDefault(key: Keys.localDNSForProxyHost.rawValue)
