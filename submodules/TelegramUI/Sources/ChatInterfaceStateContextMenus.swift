@@ -1604,7 +1604,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 ), nil)
                 f(.default)
             }))
-            actions.append(showEditHistoryAction)
+            sgActions.append(showEditHistoryAction)
         }
 
         // MARK: DarkGram - give the message author a local name. Purely local: the contact's
@@ -1633,7 +1633,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 ), nil)
                 f(.default)
             }))
-            actions.append(setAliasAction)
+            sgActions.append(setAliasAction)
         }
 
         // MARK: DarkGram - a private note about the author, alongside the alias. Same storage
@@ -1661,7 +1661,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 ), nil)
                 f(.default)
             }))
-            actions.append(noteAction)
+            sgActions.append(noteAction)
         }
 
         // MARK: DarkGram - ghost this one chat, independently of the global switch.
@@ -1675,7 +1675,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 SGSimpleSettings.shared.setPerChatGhost(!isGhosted, forPeerId: darkGramGhostPeerId)
                 f(.default)
             }))
-            actions.append(ghostAction)
+            sgActions.append(ghostAction)
         }
 
         // MARK: DarkGram - export this chat. Placed on the message menu because that is where
@@ -1694,7 +1694,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 )
                 f(.default)
             }))
-            actions.append(exportAction)
+            sgActions.append(exportAction)
         }
 
         // MARK: DarkGram - one summary covering both the contact relationship and what the
@@ -1713,7 +1713,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 )
                 f(.default)
             }))
-            actions.append(infoAction)
+            sgActions.append(infoAction)
         }
 
         // MARK: DarkGram - delete everything you sent here. Irreversible, so it is placed last
@@ -1731,7 +1731,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 )
                 f(.default)
             }))
-            actions.append(purgeAction)
+            sgActions.append(purgeAction)
         }
         
         var threadId: Int64?
