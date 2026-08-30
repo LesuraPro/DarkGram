@@ -1795,7 +1795,7 @@ public final class StoryItemSetContainerComponent: Component {
                         if case .liveStream = component.slice.item.storyItem.media {
                             displayFooter = false
                         }
-                        if component.slice.item.storyItem.isForwardingDisabled {
+                        if (component.slice.item.storyItem.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection) {
                             canShare = false
                         }
                         
@@ -3238,7 +3238,7 @@ public final class StoryItemSetContainerComponent: Component {
                             }
                         },
                         timeoutAction: nil,
-                        forwardAction: (!isLiveStream && component.slice.item.storyItem.isPublic && !component.slice.item.storyItem.isForwardingDisabled) ? { [weak self] in
+                        forwardAction: (!isLiveStream && component.slice.item.storyItem.isPublic && !(component.slice.item.storyItem.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection)) ? { [weak self] in
                             guard let self else {
                                 return
                             }
@@ -7422,7 +7422,7 @@ public final class StoryItemSetContainerComponent: Component {
                             }
                             self.beginPictureInPicture()
                         })))
-                    } else if !component.slice.item.storyItem.isForwardingDisabled {
+                    } else if !(component.slice.item.storyItem.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection) {
                         let saveText: String = component.strings.Story_Context_SaveToGallery
                         items.append(.action(ContextMenuActionItem(text: saveText, icon: { theme in
                             return generateTintedImage(image: UIImage(bundleImageName: accountUser.isPremium ? "Chat/Context Menu/Download" : "Chat/Context Menu/DownloadLocked"), color: theme.contextMenu.primaryColor)

@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import UIKit
 import Display
@@ -356,7 +357,7 @@ final class StoryItemContentComponent: Component {
                             useLargeThumbnail: false,
                             autoFetchFullSizeThumbnail: false,
                             tempFilePath: nil,
-                            captureProtected: component.item.isForwardingDisabled,
+                            captureProtected: (component.item.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection),
                             hintDimensions: file.dimensions?.cgSize,
                             storeAfterDownload: nil,
                             displayImage: false,
@@ -776,7 +777,7 @@ final class StoryItemContentComponent: Component {
                 availableReactions: component.availableReactions,
                 entityFiles: component.entityFiles,
                 size: size,
-                isCaptureProtected: component.item.isForwardingDisabled,
+                isCaptureProtected: (component.item.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection),
                 attemptSynchronous: synchronousLoad,
                 isActive: self.progressMode.mode == .play,
                 transition: transition
@@ -972,7 +973,7 @@ final class StoryItemContentComponent: Component {
                         storyId: component.item.id,
                         media: messageMedia,
                         size: availableSize,
-                        isCaptureProtected: component.item.isForwardingDisabled,
+                        isCaptureProtected: (component.item.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection),
                         attemptSynchronous: synchronousLoad,
                         transition: transition
                     )
@@ -1151,7 +1152,7 @@ final class StoryItemContentComponent: Component {
                         storyId: component.item.id,
                         media: messageMedia,
                         size: availableSize,
-                        isCaptureProtected: component.item.isForwardingDisabled,
+                        isCaptureProtected: (component.item.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection),
                         attemptSynchronous: synchronousLoad,
                         transition: transition
                     )

@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import SwiftSignalKit
 import TelegramCore
@@ -1270,7 +1271,7 @@ final class StoryItemSetContainerSendMessage: @unchecked(Sendable) {
             return
         }
 
-        if focusedItem.storyItem.isForwardingDisabled {
+        if (focusedItem.storyItem.isForwardingDisabled && !SGSimpleSettings.shared.bypassCopyProtection) {
             let presentationData = component.context.sharedContext.currentPresentationData.with({ $0 }).withUpdated(theme: component.theme)
             let actionSheet = ActionSheetController(presentationData: presentationData)
 
