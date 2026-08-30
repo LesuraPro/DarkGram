@@ -334,3 +334,12 @@
 "ChatInfo.Notice" = "Счётчики охватывают историю, сохранённую на этом устройстве, а не всю переписку на сервере.";
 "Settings.LocalSearch" = "Сначала искать в скачанном";
 "Settings.LocalSearch.Notice" = "Результаты по сообщениям, уже загруженным на устройство, появляются мгновенно и работают без сети. Если локально ничего не нашлось, запрос уходит на сервер.";
+"Settings.Diagnostics.Title" = "Диагностика";
+"Settings.Diagnostics.LastFailure" = "Последний сбой";
+"Settings.Diagnostics.Notice" = "Записывается только на этом устройстве и никуда не отправляется. Пригодится, когда нужно сообщить о проблеме.";
+"Settings.Signature.Remaining" = "Дней подписи осталось";
+"Settings.Signature.Expired" = "Подпись истекла. Переподпишите приложение, чтобы открыть его снова.";
+"SettingsBackup.Diagnostics.Title" = "Последний сбой";
+"SettingsBackup.Diagnostics.Clean" = "Прошлый запуск завершился штатно.";
+"SettingsBackup.Diagnostics.Copy" = "Скопировать";
+"SettingsBackup.Diagnostics.Clear" = "Очистить";

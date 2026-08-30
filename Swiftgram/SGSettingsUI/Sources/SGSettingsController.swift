@@ -34,6 +34,7 @@ private enum SGControllerSection: Int32, SGItemListSection {
     case messageHistory
     case protection
     case backup
+    case diagnostics
     case tabs
     case folders
     case chatList
@@ -144,6 +145,7 @@ private enum SGDisclosureLink: String {
     case moreFeatures
     case exportSettings
     case importSettings
+    case diagnostics
     case contentSettings
     case languageSettings
 }
@@ -237,6 +239,21 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.disclosure(id: id.count, section: .backup, link: .exportSettings, text: i18n("Settings.Backup.Export", lang)))
     entries.append(.disclosure(id: id.count, section: .backup, link: .importSettings, text: i18n("Settings.Backup.Import", lang)))
     entries.append(.notice(id: id.count, section: .backup, text: i18n("Settings.Backup.Notice", lang)))
+
+    entries.append(.header(id: id.count, section: .diagnostics, text: i18n("Settings.Diagnostics.Title", lang).uppercased(), badge: nil))
+    if let days = DarkGramSignature.daysRemaining {
+        let signatureText: String
+        if days <= 0 {
+            signatureText = i18n("Settings.Signature.Expired", lang)
+        } else {
+            signatureText = i18n("Settings.Signature.Remaining", lang) + ": \(days)"
+        }
+        entries.append(.notice(id: id.count, section: .diagnostics, text: signatureText))
+    } else {
+        id.increment(1)
+    }
+    entries.append(.disclosure(id: id.count, section: .diagnostics, link: .diagnostics, text: i18n("Settings.Diagnostics.LastFailure", lang)))
+    entries.append(.notice(id: id.count, section: .diagnostics, text: i18n("Settings.Diagnostics.Notice", lang)))
 
     entries.append(.header(id: id.count, section: .tabs, text: i18n("Settings.Tabs.Header", lang), badge: nil))
     entries.append(.toggle(id: id.count, section: .tabs, settingName: .hideTabBar, value: SGSimpleSettings.shared.hideTabBar, text: i18n("Settings.Tabs.HideTabBar", lang), enabled: true))
@@ -793,6 +810,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
                 darkGramExportSettings(lang: currentLang)
             case .importSettings:
                 darkGramImportSettings(lang: currentLang)
+            case .diagnostics:
+                darkGramShowDiagnostics(lang: currentLang)
             case .languageSettings:
                 pushControllerImpl?(context.sharedContext.makeLocalizationListController(context: context))
             case .contentSettings:

@@ -21,7 +21,13 @@ public class UserDefault<T> /*where T: AllowedUserDefaultTypes*/ {
     public let key: String
     public let userDefaults: UserDefaults
     private var cachedValue: T?
-    
+    // MARK: DarkGram - the cache was written with no synchronisation whatsoever. Two threads
+    // reading a cold setting both saw nil, both computed, and both assigned -- a data race on
+    // arbitrary T. Swiftgram works around it by warming hot settings in preCacheValues, which
+    // holds only until someone adds a setting and forgets to warm it. A lock removes the whole
+    // class of failure instead of papering over each instance.
+    private let cacheLock = NSLock()
+
     public init(key: String, userDefaults: UserDefaults = .standard) {
         self.key = key
         self.userDefaults = userDefaults
@@ -33,24 +39,32 @@ public class UserDefault<T> /*where T: AllowedUserDefaultTypes*/ {
             SGtrace("UD.\(key)", what: "GET")
             #endif
             
+            cacheLock.lock()
             if let strongCachedValue = cachedValue {
-                #if DEBUG && false
-                SGtrace("UD", what: "CACHED \(key) \(strongCachedValue)")
-                #endif
+                cacheLock.unlock()
                 return strongCachedValue
             }
-            
-            cachedValue = readFromUserDefaults()
-            
-            #if DEBUG
-            SGtrace("UD.\(key)", what: "EXTRACTED: \(cachedValue!)")
-            #endif
-            return cachedValue!
+            cacheLock.unlock()
+
+            // Read outside the lock: UserDefaults has its own synchronisation, and holding ours
+            // across it would serialise every cold read behind one disk touch.
+            let loaded = readFromUserDefaults()
+
+            cacheLock.lock()
+            defer { cacheLock.unlock() }
+            if let raced = cachedValue {
+                // Another thread finished first; keep its value so callers agree.
+                return raced
+            }
+            cachedValue = loaded
+            return loaded
         }
         set {
+            cacheLock.lock()
             cachedValue = newValue
+            cacheLock.unlock()
             #if DEBUG
-            SGtrace("UD.\(key)", what: "CACHE UPDATED \(cachedValue!)")
+            SGtrace("UD.\(key)", what: "CACHE UPDATED \(newValue)")
             #endif
             userDefaults.set(newValue, forKey: key)
         }
@@ -129,7 +143,7 @@ public class UserDefaultsBackedDictionary<Key: Hashable, Value> {
         #endif
         let result: [Key]
         if threadSafe {
-            rwlock.readLock()
+            rwlock.writeLock()
         }
         if container == nil {
             container = userDefaultsContainer
@@ -154,7 +168,7 @@ public class UserDefaultsBackedDictionary<Key: Hashable, Value> {
         #endif
         let result: [Value]
         if threadSafe {
-            rwlock.readLock()
+            rwlock.writeLock()
         }
         if container == nil {
             container = userDefaultsContainer
@@ -218,7 +232,7 @@ public class UserDefaultsBackedDictionary<Key: Hashable, Value> {
         #endif
         let result: Bool
         if threadSafe {
-            rwlock.readLock()
+            rwlock.writeLock()
         }
         if container == nil {
             container = userDefaultsContainer
@@ -243,7 +257,7 @@ public class UserDefaultsBackedDictionary<Key: Hashable, Value> {
         #endif
         let result: Value?
         if threadSafe {
-            rwlock.readLock()
+            rwlock.writeLock()
         }
         if container == nil {
             container = userDefaultsContainer

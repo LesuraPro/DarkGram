@@ -112,3 +112,29 @@ final class DarkGramSettingsImportCoordinator: NSObject, UIDocumentPickerDelegat
         DarkGramSettingsImportCoordinator.active = nil
     }
 }
+
+// MARK: DarkGram
+/// Shows why the previous run ended badly, if it did. Debugging this fork means an hour-long
+/// build followed by an install that costs one of ten weekly App IDs, so knowing whether the
+/// last failure was an exception or a silent termination is worth a great deal.
+public func darkGramShowDiagnostics(lang: String) {
+    guard let presenter = darkGramTopViewController() else {
+        return
+    }
+    let report = DarkGramDiagnostics.shared.lastFailureReport()
+    let alert = UIAlertController(
+        title: "SettingsBackup.Diagnostics.Title".i18n(lang),
+        message: report ?? "SettingsBackup.Diagnostics.Clean".i18n(lang),
+        preferredStyle: .alert
+    )
+    if let report = report {
+        alert.addAction(UIAlertAction(title: "SettingsBackup.Diagnostics.Copy".i18n(lang), style: .default) { _ in
+            UIPasteboard.general.string = report
+        })
+        alert.addAction(UIAlertAction(title: "SettingsBackup.Diagnostics.Clear".i18n(lang), style: .destructive) { _ in
+            DarkGramDiagnostics.shared.clearReport()
+        })
+    }
+    alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+    presenter.present(alert, animated: true)
+}

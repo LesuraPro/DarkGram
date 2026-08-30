@@ -339,3 +339,12 @@
 "ChatInfo.Notice" = "Counts cover the history stored on this device, not the full server-side history.";
 "Settings.LocalSearch" = "Search downloaded history first";
 "Settings.LocalSearch.Notice" = "Results from messages already on this device appear instantly and work with no connection. The server is still asked when nothing is found locally.";
+"Settings.Diagnostics.Title" = "Diagnostics";
+"Settings.Diagnostics.LastFailure" = "Last failure";
+"Settings.Diagnostics.Notice" = "Recorded on this device only and never sent anywhere. Useful when reporting a problem.";
+"Settings.Signature.Remaining" = "Days of signature left";
+"Settings.Signature.Expired" = "The signature has expired. Re-sign the app to open it again.";
+"SettingsBackup.Diagnostics.Title" = "Last failure";
+"SettingsBackup.Diagnostics.Clean" = "The previous run exited normally.";
+"SettingsBackup.Diagnostics.Copy" = "Copy";
+"SettingsBackup.Diagnostics.Clear" = "Clear";

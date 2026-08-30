@@ -337,6 +337,10 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private var recaptchaClientsBySiteKey: [String: Promise<RecaptchaClient>] = [:]
         
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // MARK: DarkGram - record that a run started, so the next launch can tell whether
+        // this one ended cleanly. First statement on purpose: anything below may be what fails.
+        DarkGramDiagnostics.shared.begin()
+
         precondition(!testIsLaunched)
         testIsLaunched = true
         
@@ -2011,6 +2015,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
+        // MARK: DarkGram - a run that reaches here did not crash.
+        DarkGramDiagnostics.shared.markCleanExit()
         let _ = (self.sharedContextPromise.get()
         |> take(1)
         |> deliverOnMainQueue).start(next: { sharedApplicationContext in
@@ -2129,6 +2135,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
     
     func applicationWillTerminate(_ application: UIApplication) {
+        // MARK: DarkGram - a run that reaches here did not crash.
+        DarkGramDiagnostics.shared.markCleanExit()
         Logger.shared.log("App \(self.episodeId)", "terminating")
     }
     
