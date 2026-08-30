@@ -52,7 +52,8 @@ def darkgram_files():
 
 def check_imports(problems):
     for path, text in darkgram_files():
-        imports = set(re.findall(r"^import\s+(\w+)", text, re.M))
+        # @testable import counts too -- test files import their subject that way.
+        imports = set(re.findall(r"^(?:@testable\s+)?import\s+(\w+)", text, re.M))
         body = "\n".join(
             line for line in text.splitlines() if not line.strip().startswith("//")
         )
