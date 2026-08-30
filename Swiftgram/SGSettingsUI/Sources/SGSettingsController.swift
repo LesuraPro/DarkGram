@@ -30,6 +30,7 @@ private enum SGControllerSection: Int32, SGItemListSection {
     case trending
     case content
     case ghost
+    case messageHistory
     case tabs
     case folders
     case chatList
@@ -64,6 +65,8 @@ private enum SGBoolSetting: String {
     case storyStealthMode
     case ghostMode
     case stealthStoryViews
+    case keepDeletedMessages
+    case keepEditHistory
     case disableSwipeToRecordStory
     case disableDeleteChatSwipeOption
     case quickTranslateButton
@@ -220,6 +223,11 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
         ghostStatusKey = "Settings.Ghost.Status.Off"
     }
     entries.append(.notice(id: id.count, section: .ghost, text: i18n(ghostStatusKey, lang)))
+
+    entries.append(.header(id: id.count, section: .messageHistory, text: i18n("Settings.History.Title", lang).uppercased(), badge: nil))
+    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepDeletedMessages, value: SGSimpleSettings.shared.keepDeletedMessages, text: i18n("Settings.History.KeepDeleted", lang), enabled: true))
+    entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepEditHistory, value: SGSimpleSettings.shared.keepEditHistory, text: i18n("Settings.History.KeepEdits", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .messageHistory, text: i18n("Settings.History.Notice", lang)))
 
     entries.append(.header(id: id.count, section: .stories, text: strings.AutoDownloadSettings_Stories.uppercased(), badge: nil))
     entries.append(.toggle(id: id.count, section: .stories, settingName: .hideStories, value: SGSimpleSettings.shared.hideStories, text: i18n("Settings.Stories.Hide", lang), enabled: true))
@@ -433,6 +441,10 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.ghostMode = value
         case .stealthStoryViews:
             SGSimpleSettings.shared.stealthStoryViews = value
+        case .keepDeletedMessages:
+            SGSimpleSettings.shared.keepDeletedMessages = value
+        case .keepEditHistory:
+            SGSimpleSettings.shared.keepEditHistory = value
         case .disableSwipeToRecordStory:
             SGSimpleSettings.shared.disableSwipeToRecordStory = value
         case .quickTranslateButton:

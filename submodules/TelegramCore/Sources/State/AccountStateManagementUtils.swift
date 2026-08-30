@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -4449,10 +4450,39 @@ func replayFinalState(
                 }
                 deletedMessageIds.append(contentsOf: ids.map { .global($0) })
             case let .DeleteMessages(ids):
-                _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: ids, manualAddMessageThreadStatsDifference: { id, add, remove in
+                // MARK: DarkGram - keep server-deleted messages locally instead of erasing them.
+                // Only incoming messages are kept: a deletion of our own message is usually one we
+                // asked for, and keeping it would resurrect what the user meant to remove.
+                // Messages that stay are excluded from deletedMessageIds so the UI does not
+                // animate them away.
+                var idsToDelete = ids
+                if SGSimpleSettings.shared.keepDeletedMessages {
+                    let deletedAt = Int32(CFAbsoluteTimeGetCurrent() + NSTimeIntervalSince1970)
+                    var keptIds = Set<MessageId>()
+                    for id in ids {
+                        guard let existingMessage = transaction.getMessage(id), existingMessage.flags.contains(.Incoming) else {
+                            continue
+                        }
+                        keptIds.insert(id)
+                        if existingMessage.attributes.contains(where: { $0 is DarkGramDeletedMessageAttribute }) {
+                            continue
+                        }
+                        transaction.updateMessage(id, update: { currentMessage in
+                            var storeForwardInfo: StoreMessageForwardInfo?
+                            if let forwardInfo = currentMessage.forwardInfo {
+                                storeForwardInfo = StoreMessageForwardInfo(authorId: forwardInfo.author?.id, sourceId: forwardInfo.source?.id, sourceMessageId: forwardInfo.sourceMessageId, date: forwardInfo.date, authorSignature: forwardInfo.authorSignature, psaType: forwardInfo.psaType, flags: forwardInfo.flags)
+                            }
+                            var updatedAttributes = currentMessage.attributes
+                            updatedAttributes.append(DarkGramDeletedMessageAttribute(deletedAt: deletedAt))
+                            return .update(StoreMessage(id: currentMessage.id, customStableId: nil, globallyUniqueId: currentMessage.globallyUniqueId, groupingKey: currentMessage.groupingKey, threadId: currentMessage.threadId, timestamp: currentMessage.timestamp, flags: StoreMessageFlags(currentMessage.flags), tags: currentMessage.tags, globalTags: currentMessage.globalTags, localTags: currentMessage.localTags, forwardInfo: storeForwardInfo, authorId: currentMessage.author?.id, text: currentMessage.text, attributes: updatedAttributes, media: currentMessage.media))
+                        })
+                    }
+                    idsToDelete = ids.filter { !keptIds.contains($0) }
+                }
+                _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: idsToDelete, manualAddMessageThreadStatsDifference: { id, add, remove in
                     addMessageThreadStatsDifference(threadKey: id, remove: remove, addedMessagePeer: nil, addedMessageId: nil, isOutgoing: false)
                 })
-                deletedMessageIds.append(contentsOf: ids.map { .messageId($0) })
+                deletedMessageIds.append(contentsOf: idsToDelete.map { .messageId($0) })
             case let .UpdateMinAvailableMessage(id):
                 if let message = transaction.getMessage(id) {
                     updatePeerChatInclusionWithMinTimestamp(transaction: transaction, id: id.peerId, minTimestamp: message.timestamp, forceRootGroupIfNotExists: false)
@@ -4491,6 +4521,16 @@ func replayFinalState(
                     var updatedFlags = message.flags
                     var updatedLocalTags = message.localTags
                     var updatedAttributes = message.attributes
+
+                    // MARK: DarkGram - record the text being replaced. This runs before any of the
+                    // merge logic below so the captured revision is what the user actually saw.
+                    // Media-only edits (identical text) are ignored; there is nothing to record.
+                    if SGSimpleSettings.shared.keepEditHistory, !previousMessage.text.isEmpty, previousMessage.text != message.text {
+                        let existingHistory = previousMessage.attributes.first(where: { $0 is DarkGramEditHistoryAttribute }) as? DarkGramEditHistoryAttribute
+                        let history = existingHistory ?? DarkGramEditHistoryAttribute(texts: [], timestamps: [])
+                        updatedAttributes.removeAll(where: { $0 is DarkGramEditHistoryAttribute })
+                        updatedAttributes.append(history.appending(text: previousMessage.text, timestamp: previousMessage.timestamp))
+                    }
                     if previousMessage.localTags.contains(.OutgoingLiveLocation) {
                         updatedLocalTags.insert(.OutgoingLiveLocation)
                     }

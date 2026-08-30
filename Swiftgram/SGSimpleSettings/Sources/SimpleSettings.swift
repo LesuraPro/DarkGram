@@ -76,7 +76,9 @@ public class SGSimpleSettings {
             { let _ = self.dismissedSGSuggestions },
             { let _ = self.customAppBadge },
             { let _ = self.ghostMode },
-            { let _ = self.stealthStoryViews }
+            { let _ = self.stealthStoryViews },
+            { let _ = self.keepDeletedMessages },
+            { let _ = self.keepEditHistory }
         ]
 
         tasks.forEach { task in
@@ -111,6 +113,8 @@ public class SGSimpleSettings {
         case canUseStealthMode
         case ghostMode
         case stealthStoryViews
+        case keepDeletedMessages
+        case keepEditHistory
         case disableSwipeToRecordStory
         case quickTranslateButton
         case outgoingLanguageTranslation
@@ -271,6 +275,8 @@ public class SGSimpleSettings {
         Keys.storyStealthMode.rawValue: false,
         Keys.ghostMode.rawValue: false,
         Keys.stealthStoryViews.rawValue: false,
+        Keys.keepDeletedMessages.rawValue: false,
+        Keys.keepEditHistory.rawValue: false,
         Keys.canUseStealthMode.rawValue: true,
         Keys.disableSwipeToRecordStory.rawValue: false,
         Keys.quickTranslateButton.rawValue: false,
@@ -405,6 +411,14 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - views stories without reporting them as seen.
     @UserDefault(key: Keys.stealthStoryViews.rawValue)
     public var stealthStoryViews: Bool
+
+    /// MARK: DarkGram - keep server-deleted messages in the local database.
+    @UserDefault(key: Keys.keepDeletedMessages.rawValue)
+    public var keepDeletedMessages: Bool
+
+    /// MARK: DarkGram - record superseded texts when a message is edited.
+    @UserDefault(key: Keys.keepEditHistory.rawValue)
+    public var keepEditHistory: Bool
     
     @UserDefault(key: Keys.disableSwipeToRecordStory.rawValue)
     public var disableSwipeToRecordStory: Bool   

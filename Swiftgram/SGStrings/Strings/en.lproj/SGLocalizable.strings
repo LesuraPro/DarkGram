@@ -285,3 +285,9 @@
 "Settings.Ghost.Status.Full" = "Full anonymity is on. Read receipts, typing status and online presence are never sent, and stories are not reported as viewed.";
 "Settings.Ghost.Status.Stories" = "Stories are not reported as viewed. Read receipts, typing status and online presence are still sent.";
 "Settings.Ghost.Status.Off" = "Off. Others can see your read receipts, when you are typing and when you were last online.";
+
+/* DarkGram: message history */
+"Settings.History.Title" = "Message history";
+"Settings.History.KeepDeleted" = "Keep deleted messages";
+"Settings.History.KeepEdits" = "Keep edit history";
+"Settings.History.Notice" = "Deleted incoming messages stay in this chat instead of disappearing, and earlier versions of edited messages are recorded. Applies only to messages received while this is on; nothing is uploaded anywhere.";
