@@ -328,3 +328,12 @@
 "ContextMenu.ContactNote.Subtitle" = "Private, stored on this device only. Leave empty to remove.";
 "ContextMenu.GhostChat" = "Ghost this chat";
 "ContextMenu.UnghostChat" = "Stop ghosting this chat";
+"ContextMenu.ChatInfo" = "Chat summary";
+"ChatInfo.Contact.Mutual" = "You are in each other's contacts.";
+"ChatInfo.Contact.NotMutual" = "Not a mutual contact — they most likely do not have you saved.";
+"ChatInfo.Total" = "Messages";
+"ChatInfo.Mine" = "Sent by you";
+"ChatInfo.Theirs" = "Received";
+"ChatInfo.Deleted" = "Kept after deletion";
+"ChatInfo.Range" = "Period";
+"ChatInfo.Notice" = "Counts cover the history stored on this device, not the full server-side history.";

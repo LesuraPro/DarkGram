@@ -1696,6 +1696,25 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             }))
             actions.append(exportAction)
         }
+
+        // MARK: DarkGram - one summary covering both the contact relationship and what the
+        // cached history holds. It reuses the export walker, so the numbers describe exactly
+        // the same scope the export writes out.
+        if let darkGramInfoPeer = chatPresentationInterfaceState.renderedPeer?.peer {
+            let darkGramInfoLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let infoAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.ChatInfo", darkGramInfoLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                darkGramShowChatInfo(
+                    controllerInteraction: controllerInteraction,
+                    chatPresentationInterfaceState: chatPresentationInterfaceState,
+                    context: context,
+                    peer: darkGramInfoPeer
+                )
+                f(.default)
+            }))
+            actions.append(infoAction)
+        }
         
         var threadId: Int64?
         var threadMessageCount: Int = 0

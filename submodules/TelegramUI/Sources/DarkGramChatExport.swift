@@ -6,6 +6,8 @@ import AccountContext
 import TelegramPresentationData
 import ChatControllerInteraction
 import ChatPresentationInterfaceState
+import PresentationDataUtils
+import SGStrings
 
 // MARK: DarkGram
 // Chat export. iOS Telegram has no equivalent -- only Desktop does -- so this is written from
@@ -201,5 +203,80 @@ public func darkGramExportChat(
             file: file,
             canShare: true
         )
+    })
+}
+
+// MARK: DarkGram
+/// Chat summary: how the contact relationship stands, and what the cached history looks like.
+/// Reuses the export walker, so the numbers describe exactly what the device holds -- the same
+/// scope the export writes out, which keeps the two features honest with each other.
+public func darkGramShowChatInfo(
+    controllerInteraction: ChatControllerInteraction,
+    chatPresentationInterfaceState: ChatPresentationInterfaceState,
+    context: AccountContext,
+    peer: Peer
+) {
+    let strings = chatPresentationInterfaceState.strings
+    let lang = strings.baseLanguageCode
+    let peerId = peer.id
+
+    // Only a user can be a contact; groups and channels have no such relationship.
+    var contactLine: String?
+    if let user = peer as? TelegramUser {
+        if user.flags.contains(.mutualContact) {
+            contactLine = i18n("ChatInfo.Contact.Mutual", lang)
+        } else {
+            // Telegram reports mutuality only for people already in our own contacts, so a
+            // non-mutual flag is conclusive one way and silent the other.
+            contactLine = i18n("ChatInfo.Contact.NotMutual", lang)
+        }
+    }
+
+    let signal = context.account.postbox.transaction { transaction -> (Int, Int, Int, Int32, Int32) in
+        let messages = darkGramCollectMessages(transaction: transaction, peerId: peerId)
+        var outgoing = 0
+        var deleted = 0
+        for message in messages {
+            if !message.flags.contains(.Incoming) {
+                outgoing += 1
+            }
+            if message.attributes.contains(where: { $0 is DarkGramDeletedMessageAttribute }) {
+                deleted += 1
+            }
+        }
+        let first = messages.first?.timestamp ?? 0
+        let last = messages.last?.timestamp ?? 0
+        return (messages.count, outgoing, deleted, first, last)
+    }
+    |> deliverOnMainQueue
+
+    let _ = signal.startStandalone(next: { total, outgoing, deleted, first, last in
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy"
+
+        var lines: [String] = []
+        if let contactLine = contactLine {
+            lines.append(contactLine)
+        }
+        lines.append(i18n("ChatInfo.Total", lang) + ": \(total)")
+        lines.append(i18n("ChatInfo.Mine", lang) + ": \(outgoing)")
+        lines.append(i18n("ChatInfo.Theirs", lang) + ": \(total - outgoing)")
+        if deleted > 0 {
+            lines.append(i18n("ChatInfo.Deleted", lang) + ": \(deleted)")
+        }
+        if first > 0 {
+            let from = formatter.string(from: Date(timeIntervalSince1970: Double(first)))
+            let to = formatter.string(from: Date(timeIntervalSince1970: Double(last)))
+            lines.append(i18n("ChatInfo.Range", lang) + ": \(from) — \(to)")
+        }
+        lines.append("")
+        lines.append(i18n("ChatInfo.Notice", lang))
+
+        controllerInteraction.presentController(textAlertController(
+            context: context,
+            title: EnginePeer(peer).compactDisplayTitle,
+            text: lines.joined(separator: "\n"),
+            actions: [TextAlertAction(type: .defaultAction, title: strings.Common_OK, action: {})]
+        ), nil)
     })
 }

@@ -323,3 +323,12 @@
 "ContextMenu.ContactNote.Subtitle" = "Личная, хранится только на этом устройстве. Оставьте пустой, чтобы удалить.";
 "ContextMenu.GhostChat" = "Инкогнито в этом чате";
 "ContextMenu.UnghostChat" = "Отключить инкогнито здесь";
+"ContextMenu.ChatInfo" = "Сводка по чату";
+"ChatInfo.Contact.Mutual" = "Вы есть в контактах друг у друга.";
+"ChatInfo.Contact.NotMutual" = "Контакт не взаимный — скорее всего, вы у него не сохранены.";
+"ChatInfo.Total" = "Сообщений";
+"ChatInfo.Mine" = "Отправлено вами";
+"ChatInfo.Theirs" = "Получено";
+"ChatInfo.Deleted" = "Сохранено после удаления";
+"ChatInfo.Range" = "Период";
+"ChatInfo.Notice" = "Счётчики охватывают историю, сохранённую на этом устройстве, а не всю переписку на сервере.";
