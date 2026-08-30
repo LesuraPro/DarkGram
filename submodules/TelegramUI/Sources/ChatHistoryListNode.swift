@@ -926,7 +926,14 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         } else {
             adMessages = .single((nil, [], nil, nil))
         }
-        
+
+        // MARK: DarkGram - sponsored messages are never displayed. This overrides whatever the
+        // branches above produced. The empty state is the one non-bubble modes already use, so
+        // no downstream consumer sees a new case. Deleting this line restores upstream ads.
+        // Written as an override rather than a disabled branch because the project builds with
+        // warnings-as-errors, and a constant-false condition trips "will never be executed".
+        adMessages = .single((nil, [], nil, nil))
+
         let clientId = Atomic<Int32>(value: nextClientId)
         self.clientId = clientId
         nextClientId += 1
