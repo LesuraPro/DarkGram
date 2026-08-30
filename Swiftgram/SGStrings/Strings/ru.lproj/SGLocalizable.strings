@@ -301,3 +301,4 @@
 "ContextMenu.SetAlias" = "Локальное имя";
 "ContextMenu.SetAlias.Subtitle" = "Видно только вам. Оставьте пустым, чтобы вернуть настоящее имя.";
 "ContextMenu.ExportChat" = "Экспорт чата";
+"Settings.MoreFeatures" = "Дополнительно";

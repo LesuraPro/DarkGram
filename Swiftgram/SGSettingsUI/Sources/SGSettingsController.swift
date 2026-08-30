@@ -23,6 +23,7 @@ import AppBundle
 import WebKit
 import PeerNameColorScreen
 import UndoUI
+import SGProUI
 
 
 private enum SGControllerSection: Int32, SGItemListSection {
@@ -133,6 +134,7 @@ private enum SGSliderSetting: String {
 }
 
 private enum SGDisclosureLink: String {
+    case moreFeatures
     case contentSettings
     case languageSettings
 }
@@ -225,6 +227,10 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
         ghostStatusKey = "Settings.Ghost.Status.Off"
     }
     entries.append(.notice(id: id.count, section: .ghost, text: i18n(ghostStatusKey, lang)))
+
+    // MARK: DarkGram - the former "Pro" screen, now a plain subsection. Everything specific to
+    // this fork is reachable from this one screen rather than two rows in iOS Settings.
+    entries.append(.disclosure(id: id.count, section: .ghost, link: .moreFeatures, text: i18n("Settings.MoreFeatures", lang)))
 
     entries.append(.header(id: id.count, section: .messageHistory, text: i18n("Settings.History.Title", lang).uppercased(), badge: nil))
     entries.append(.toggle(id: id.count, section: .messageHistory, settingName: .keepDeletedMessages, value: SGSimpleSettings.shared.keepDeletedMessages, text: i18n("Settings.History.KeepDeleted", lang), enabled: true))
@@ -725,6 +731,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
         presentControllerImpl?(actionSheet, ViewControllerPresentationArguments(presentationAnimation: .modalSheet))
     }, openDisclosureLink: { link in
         switch (link) {
+            case .moreFeatures:
+                pushControllerImpl?(sgProController(context: context))
             case .languageSettings:
                 pushControllerImpl?(context.sharedContext.makeLocalizationListController(context: context))
             case .contentSettings:

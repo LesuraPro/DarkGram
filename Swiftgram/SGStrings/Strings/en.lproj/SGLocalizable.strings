@@ -306,3 +306,4 @@
 "ContextMenu.SetAlias" = "Local name";
 "ContextMenu.SetAlias.Subtitle" = "Shown only to you. Leave empty to use the real name again.";
 "ContextMenu.ExportChat" = "Export chat";
+"Settings.MoreFeatures" = "More features";
