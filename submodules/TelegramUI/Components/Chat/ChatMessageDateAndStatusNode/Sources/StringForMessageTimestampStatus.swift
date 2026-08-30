@@ -61,7 +61,30 @@ private func monthAtIndex(_ index: Int, strings: PresentationStrings) -> String 
     }
 }
 
+// MARK: DarkGram
+/// Prefixes the timestamp line of a locally-kept deleted message with a marker.
+/// Every bubble -- text, media, sticker -- routes its status line through this
+/// helper, so one wrapper marks them all. The upstream body is renamed rather
+/// than edited: it has several return paths, and leaving it untouched keeps
+/// merges with Swiftgram clean.
 public func stringForMessageTimestampStatus(
+    context: AccountContext,
+    message: EngineMessage,
+    dateTimeFormat: PresentationDateTimeFormat,
+    nameDisplayOrder: PresentationPersonNameOrder,
+    strings: PresentationStrings,
+    format: MessageTimestampStatusFormat = .regular,
+    associatedData: ChatMessageItemAssociatedData,
+    ignoreAuthor: Bool = false
+) -> String {
+    let baseText = darkGramBaseStringForMessageTimestampStatus(context: context, message: message, dateTimeFormat: dateTimeFormat, nameDisplayOrder: nameDisplayOrder, strings: strings, format: format, associatedData: associatedData, ignoreAuthor: ignoreAuthor)
+    if message.attributes.contains(where: { $0 is DarkGramDeletedMessageAttribute }) {
+        return "🗑 " + baseText
+    }
+    return baseText
+}
+
+private func darkGramBaseStringForMessageTimestampStatus(
     context: AccountContext,
     message: EngineMessage,
     dateTimeFormat: PresentationDateTimeFormat,
