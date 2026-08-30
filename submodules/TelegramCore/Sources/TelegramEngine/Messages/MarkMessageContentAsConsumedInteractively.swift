@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import TelegramApi
@@ -5,6 +6,13 @@ import SwiftSignalKit
 
 func _internal_markMessageContentAsConsumedInteractively(postbox: Postbox, messageId: MessageId) -> Signal<Void, NoError> {
     return postbox.transaction { transaction -> Void in
+        // MARK: DarkGram - one-time media stays an ordinary message. Consuming it is what starts
+        // the autoremove countdown and hides the content, so simply never consuming leaves the
+        // photo, video, round message or voice note in place. The sender learns nothing either:
+        // the outbound report is a separate call, already suppressed by ghost mode.
+        if SGSimpleSettings.shared.keepOneTimeMedia {
+            return
+        }
         if let message = transaction.getMessage(messageId), message.flags.contains(.Incoming) {
             var updateMessage = false
             var updatedAttributes = message.attributes

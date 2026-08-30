@@ -1,5 +1,6 @@
 import Foundation
 import TelegramCore
+import SGSimpleSettings
 import TelegramPresentationData
 import TelegramUIPreferences
 import TelegramStringFormatting
@@ -80,6 +81,11 @@ public func stringForMessageTimestampStatus(
     let baseText = darkGramBaseStringForMessageTimestampStatus(context: context, message: message, dateTimeFormat: dateTimeFormat, nameDisplayOrder: nameDisplayOrder, strings: strings, format: format, associatedData: associatedData, ignoreAuthor: ignoreAuthor)
     if message.attributes.contains(where: { $0 is DarkGramDeletedMessageAttribute }) {
         return "🗑 " + baseText
+    }
+    // A one-time item we chose to keep still deserves to be recognisable as one.
+    if SGSimpleSettings.shared.keepOneTimeMedia,
+       message.attributes.contains(where: { ($0 as? ConsumableContentMessageAttribute)?.consumed == false }) {
+        return "🔥 " + baseText
     }
     return baseText
 }

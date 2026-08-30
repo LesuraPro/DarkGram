@@ -3,6 +3,11 @@ import UIKit
 import UniformTypeIdentifiers
 import SGSimpleSettings
 import SGStrings
+import Postbox
+import TelegramCore
+import TelegramUIPreferences
+import AccountContext
+import SwiftSignalKit
 
 // MARK: DarkGram
 // Settings backup UI. A free Apple ID signature expires after seven days, so the app is
@@ -33,8 +38,54 @@ private func darkGramShowBackupResult(message: String) {
 }
 
 /// Writes the current settings to a temporary file and offers the system share sheet.
-public func darkGramExportSettings(lang: String) {
-    guard let data = SGSimpleSettings.shared.exportToJSON() else {
+// MARK: DarkGram
+// Telegram keeps its own look -- theme, accent colours, chat wallpaper, font size -- in the
+// account manager's shared data, not in UserDefaults, so our toggles alone would restore a
+// half-configured app. The entry is Postbox-codable, so it travels as one base64 blob under a
+// reserved key that our own settings can never collide with.
+private let darkGramThemeBackupKey = "__darkgram_presentationThemeSettings"
+
+public func darkGramExportSettings(context: AccountContext, lang: String) {
+    let _ = (context.sharedContext.accountManager.transaction { transaction -> String? in
+        guard let entry = transaction.getSharedData(ApplicationSpecificSharedDataKeys.presentationThemeSettings),
+              let settings = entry.get(PresentationThemeSettings.self) else {
+            return nil
+        }
+        let encoder = PostboxEncoder()
+        encoder.encodeRootObject(settings)
+        return encoder.makeData().base64EncodedString()
+    }
+    |> deliverOnMainQueue).startStandalone(next: { themeBlob in
+        darkGramWriteExport(lang: lang, themeBlob: themeBlob)
+    })
+}
+
+/// Restores Telegram's presentation settings from a blob produced by the export above.
+public func darkGramRestoreThemeSettings(context: AccountContext, blob: String) {
+    guard let data = Data(base64Encoded: blob) else {
+        return
+    }
+    let _ = context.sharedContext.accountManager.transaction { transaction -> Void in
+        let decoder = PostboxDecoder(buffer: MemoryBuffer(data: data))
+        guard let settings = decoder.decodeRootObject() as? PresentationThemeSettings else {
+            return
+        }
+        transaction.updateSharedData(ApplicationSpecificSharedDataKeys.presentationThemeSettings, { _ in
+            return PreferencesEntry(settings)
+        })
+    }.startStandalone()
+}
+
+private func darkGramWriteExport(lang: String, themeBlob: String?) {
+    guard var payload = SGSimpleSettings.shared.exportToJSON()
+        .flatMap({ try? JSONSerialization.jsonObject(with: $0) }) as? [String: Any] else {
+        darkGramShowBackupResult(message: "SettingsBackup.Export.Failed".i18n(lang))
+        return
+    }
+    if let themeBlob = themeBlob {
+        payload[darkGramThemeBackupKey] = themeBlob
+    }
+    guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) else {
         darkGramShowBackupResult(message: "SettingsBackup.Export.Failed".i18n(lang))
         return
     }
@@ -58,7 +109,7 @@ public func darkGramExportSettings(lang: String) {
 }
 
 /// Opens the document picker and restores whatever known settings the chosen file holds.
-public func darkGramImportSettings(lang: String) {
+public func darkGramImportSettings(context: AccountContext, lang: String) {
     guard let presenter = darkGramTopViewController() else {
         return
     }
@@ -68,7 +119,7 @@ public func darkGramImportSettings(lang: String) {
     } else {
         picker = UIDocumentPickerViewController(documentTypes: ["public.json"], in: .open)
     }
-    let coordinator = DarkGramSettingsImportCoordinator(lang: lang)
+    let coordinator = DarkGramSettingsImportCoordinator(context: context, lang: lang)
     picker.delegate = coordinator
     // The picker holds no strong reference to its delegate, so park it until dismissal.
     DarkGramSettingsImportCoordinator.active = coordinator
@@ -79,8 +130,10 @@ final class DarkGramSettingsImportCoordinator: NSObject, UIDocumentPickerDelegat
     static var active: DarkGramSettingsImportCoordinator?
 
     private let lang: String
+    private let context: AccountContext
 
-    init(lang: String) {
+    init(context: AccountContext, lang: String) {
+        self.context = context
         self.lang = lang
     }
 
@@ -99,6 +152,12 @@ final class DarkGramSettingsImportCoordinator: NSObject, UIDocumentPickerDelegat
         guard let data = try? Data(contentsOf: url) else {
             darkGramShowBackupResult(message: "SettingsBackup.Import.Failed".i18n(self.lang))
             return
+        }
+        // Telegram's own look travels under a reserved key; restore it before our toggles so a
+        // failure there cannot leave the app half-restored without saying so.
+        if let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+           let themeBlob = object[darkGramThemeBackupKey] as? String {
+            darkGramRestoreThemeSettings(context: self.context, blob: themeBlob)
         }
         let applied = SGSimpleSettings.shared.importFromJSON(data)
         if applied > 0 {

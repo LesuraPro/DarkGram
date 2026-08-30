@@ -807,9 +807,9 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             case .moreFeatures:
                 pushControllerImpl?(sgProController(context: context))
             case .exportSettings:
-                darkGramExportSettings(lang: currentLang)
+                darkGramExportSettings(context: context, lang: currentLang)
             case .importSettings:
-                darkGramImportSettings(lang: currentLang)
+                darkGramImportSettings(context: context, lang: currentLang)
             case .diagnostics:
                 darkGramShowDiagnostics(lang: currentLang)
             case .languageSettings:

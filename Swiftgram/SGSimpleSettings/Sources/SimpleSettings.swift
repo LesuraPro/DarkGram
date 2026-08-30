@@ -84,7 +84,8 @@ public class SGSimpleSettings {
             { let _ = self.ghostScheduleEnabled },
             { let _ = self.perChatGhostPeerIds },
             { let _ = self.keywordAlertSound },
-            { let _ = self.preferLocalSearch }
+            { let _ = self.preferLocalSearch },
+            { let _ = self.keepOneTimeMedia }
         ]
 
         tasks.forEach { task in
@@ -229,6 +230,7 @@ public class SGSimpleSettings {
         case ghostScheduleToHour
         case keywordAlertSound
         case preferLocalSearch
+        case keepOneTimeMedia
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -399,6 +401,7 @@ public class SGSimpleSettings {
         Keys.ghostScheduleToHour.rawValue: 7,
         Keys.keywordAlertSound.rawValue: true,
         Keys.preferLocalSearch.rawValue: true,
+        Keys.keepOneTimeMedia.rawValue: false,
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -758,6 +761,10 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - search cached history before asking the server.
     @UserDefault(key: Keys.preferLocalSearch.rawValue)
     public var preferLocalSearch: Bool
+
+    /// MARK: DarkGram - never consume one-time media, so it stays an ordinary message.
+    @UserDefault(key: Keys.keepOneTimeMedia.rawValue)
+    public var keepOneTimeMedia: Bool
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)
