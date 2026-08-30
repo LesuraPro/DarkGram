@@ -57,9 +57,27 @@ struct MessageFilterKeywordInputView: View {
 @available(iOS 13.0, *)
 // MARK: DarkGram - the same editor drives two independent word lists: the original
 // hide-these-messages filter, and the notify-me-about-these watch.
+public extension SGKeywordListKind {
+    var sgTitleKey: String {
+        switch self {
+        case .filter: return "MessageFilter.Title"
+        case .notify: return "NotifyKeywords.Title"
+        case .quickReplies: return "QuickReplies.Title"
+        }
+    }
+    var sgSubtitleKey: String {
+        switch self {
+        case .filter: return "MessageFilter.SubTitle"
+        case .notify: return "NotifyKeywords.SubTitle"
+        case .quickReplies: return "QuickReplies.SubTitle"
+        }
+    }
+}
+
 public enum SGKeywordListKind {
     case filter
     case notify
+    case quickReplies
 }
 
 struct MessageFilterView: View {
@@ -76,6 +94,8 @@ struct MessageFilterView: View {
                 SGSimpleSettings.shared.messageFilterKeywords = keywords
             case .notify:
                 SGSimpleSettings.shared.notifyKeywords = keywords
+            case .quickReplies:
+                SGSimpleSettings.shared.quickReplies = keywords
             }
         }
     }
@@ -88,6 +108,8 @@ struct MessageFilterView: View {
             _keywords = State(initialValue: SGSimpleSettings.shared.messageFilterKeywords)
         case .notify:
             _keywords = State(initialValue: SGSimpleSettings.shared.notifyKeywords)
+        case .quickReplies:
+            _keywords = State(initialValue: SGSimpleSettings.shared.quickReplies)
         }
     }
     
@@ -100,11 +122,11 @@ struct MessageFilterView: View {
                             .font(.system(size: 50))
                             .foregroundColor(.secondary)
                         
-                        Text((kind == .notify ? "NotifyKeywords.Title" : "MessageFilter.Title").i18n(lang))
+                        Text(kind.sgTitleKey.i18n(lang))
                             .font(.title)
                             .bold()
                         
-                        Text((kind == .notify ? "NotifyKeywords.SubTitle" : "MessageFilter.SubTitle").i18n(lang))
+                        Text(kind.sgSubtitleKey.i18n(lang))
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)

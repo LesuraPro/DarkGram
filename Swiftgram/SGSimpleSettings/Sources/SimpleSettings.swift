@@ -171,6 +171,7 @@ public class SGSimpleSettings {
         case legacyNotificationsFix
         case messageFilterKeywords
         case notifyKeywords
+        case quickReplies
         case inputToolbar
         case pinnedMessageNotifications
         case mentionsAndRepliesNotifications
@@ -334,6 +335,7 @@ public class SGSimpleSettings {
         Keys.videoPIPSwipeDirection.rawValue: VideoPIPSwipeDirection.up.rawValue,
         Keys.messageFilterKeywords.rawValue: [],
         Keys.notifyKeywords.rawValue: [],
+        Keys.quickReplies.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
         Keys.dismissedSGSuggestions.rawValue: [],
@@ -599,6 +601,10 @@ public class SGSimpleSettings {
     /// including in muted chats.
     @UserDefault(key: Keys.notifyKeywords.rawValue)
     public var notifyKeywords: [String]
+
+    /// MARK: DarkGram - canned reply texts offered from the input toolbar.
+    @UserDefault(key: Keys.quickReplies.rawValue)
+    public var quickReplies: [String]
     
     @UserDefault(key: Keys.inputToolbar.rawValue)
     public var inputToolbar: Bool

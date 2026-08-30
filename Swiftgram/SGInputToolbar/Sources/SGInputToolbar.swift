@@ -19,7 +19,12 @@ public struct ChatToolbarView: View {
     @Binding private var showNewLine: Bool
     
     var onClearFormatting: () -> Void
-    
+
+    // MARK: DarkGram - canned replies. Optional with defaults so existing call sites
+    // compile unchanged; the button hides itself when no templates are configured.
+    var quickReplies: [String] = []
+    var onQuickReply: ((String) -> Void)?
+
     public init(
         onQuote: @escaping () -> Void,
         onSpoiler: @escaping () -> Void,
@@ -33,7 +38,9 @@ public struct ChatToolbarView: View {
         onCode: @escaping () -> Void,
         onNewLine: @escaping () -> Void,
         showNewLine: Binding<Bool>,
-        onClearFormatting: @escaping () -> Void
+        onClearFormatting: @escaping () -> Void,
+        quickReplies: [String] = [],
+        onQuickReply: ((String) -> Void)? = nil
     ) {
         self.onQuote = onQuote
         self.onSpoiler = onSpoiler
@@ -48,6 +55,8 @@ public struct ChatToolbarView: View {
         self.onNewLine = onNewLine
         self._showNewLine = showNewLine
         self.onClearFormatting = onClearFormatting
+        self.quickReplies = quickReplies
+        self.onQuickReply = onQuickReply
     }
     
     public func setShowNewLine(_ value: Bool) {
@@ -67,6 +76,20 @@ public struct ChatToolbarView: View {
                     Image(systemName: "pencil.slash")
                 }
                 .buttonStyle(ToolbarButtonStyle())
+                if !quickReplies.isEmpty, let onQuickReply = onQuickReply {
+                    if #available(iOS 14.0, *) {
+                        Menu {
+                            ForEach(quickReplies, id: \.self) { reply in
+                                Button(reply) {
+                                    onQuickReply(reply)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "text.badge.plus")
+                        }
+                        .buttonStyle(ToolbarButtonStyle())
+                    }
+                }
                 Spacer()
                 // Quote Button
                 Button(action: onQuote) {
