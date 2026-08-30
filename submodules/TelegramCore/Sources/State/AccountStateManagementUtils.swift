@@ -4441,14 +4441,46 @@ func replayFinalState(
                     }
                 }
             case let .DeleteMessagesWithGlobalIds(ids):
+                // MARK: DarkGram - private chats and basic groups report deletions by GLOBAL id,
+                // not message id, so this branch -- not .DeleteMessages -- is the one that fires
+                // for ordinary conversations. Intercepting only the other branch meant the
+                // keep-deleted setting silently did nothing exactly where it is used most.
+                var globalIdsToDelete = ids
+                if SGSimpleSettings.shared.keepDeletedMessages {
+                    let deletedAt = Int32(CFAbsoluteTimeGetCurrent() + NSTimeIntervalSince1970)
+                    var keptGlobalIds = Set<Int32>()
+                    for globalId in ids {
+                        // Resolved one at a time: the bulk lookup returns message ids without
+                        // saying which global id each came from, and we need that pairing.
+                        guard let messageId = transaction.messageIdsForGlobalIds([globalId]).first,
+                              let existingMessage = transaction.getMessage(messageId),
+                              existingMessage.flags.contains(.Incoming) else {
+                            continue
+                        }
+                        keptGlobalIds.insert(globalId)
+                        if existingMessage.attributes.contains(where: { $0 is DarkGramDeletedMessageAttribute }) {
+                            continue
+                        }
+                        transaction.updateMessage(messageId, update: { currentMessage in
+                            var storeForwardInfo: StoreMessageForwardInfo?
+                            if let forwardInfo = currentMessage.forwardInfo {
+                                storeForwardInfo = StoreMessageForwardInfo(authorId: forwardInfo.author?.id, sourceId: forwardInfo.source?.id, sourceMessageId: forwardInfo.sourceMessageId, date: forwardInfo.date, authorSignature: forwardInfo.authorSignature, psaType: forwardInfo.psaType, flags: forwardInfo.flags)
+                            }
+                            var updatedAttributes = currentMessage.attributes
+                            updatedAttributes.append(DarkGramDeletedMessageAttribute(deletedAt: deletedAt))
+                            return .update(StoreMessage(id: currentMessage.id, customStableId: nil, globallyUniqueId: currentMessage.globallyUniqueId, groupingKey: currentMessage.groupingKey, threadId: currentMessage.threadId, timestamp: currentMessage.timestamp, flags: StoreMessageFlags(currentMessage.flags), tags: currentMessage.tags, globalTags: currentMessage.globalTags, localTags: currentMessage.localTags, forwardInfo: storeForwardInfo, authorId: currentMessage.author?.id, text: currentMessage.text, attributes: updatedAttributes, media: currentMessage.media))
+                        })
+                    }
+                    globalIdsToDelete = ids.filter({ !keptGlobalIds.contains($0) })
+                }
                 var resourceIds: [MediaResourceId] = []
-                transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
+                transaction.deleteMessagesWithGlobalIds(globalIdsToDelete, forEachMedia: { media in
                     addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
                 })
                 if !resourceIds.isEmpty {
                     let _ = mediaBox.removeCachedResources(Array(Set(resourceIds)), force: true).start()
                 }
-                deletedMessageIds.append(contentsOf: ids.map { .global($0) })
+                deletedMessageIds.append(contentsOf: globalIdsToDelete.map { .global($0) })
             case let .DeleteMessages(ids):
                 // MARK: DarkGram - keep server-deleted messages locally instead of erasing them.
                 // Only incoming messages are kept: a deletion of our own message is usually one we
