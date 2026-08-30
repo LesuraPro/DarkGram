@@ -123,7 +123,7 @@ private func pushStoriesAreSeen(postbox: Postbox, network: Network, stateManager
     // MARK: DarkGram - stealth story viewing. Dropping the operation here rather than at the
     // call site keeps the local "seen" state intact, so the story still greys out for the user;
     // only the server-side report is withheld.
-    if SGSimpleSettings.shared.stealthStoryViews || SGSimpleSettings.shared.ghostMode {
+    if SGSimpleSettings.shared.stealthStoryViews || SGSimpleSettings.shared.isGhostModeActive(forPeerId: peer.id.toInt64()) {
         return .complete()
     }
     guard let inputPeer = apiInputPeer(peer) else {

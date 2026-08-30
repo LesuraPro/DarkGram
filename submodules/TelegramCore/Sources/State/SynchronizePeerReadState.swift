@@ -255,7 +255,7 @@ private func pushPeerReadState(network: Network, postbox: Postbox, stateManager:
                     // MARK: DarkGram - ghost mode withholds read receipts. Returning the read
                     // state unchanged keeps the local unread counter correct; only the
                     // server-side messages.readHistory push is skipped.
-                    if SGSimpleSettings.shared.ghostMode {
+                    if SGSimpleSettings.shared.isGhostModeActive(forPeerId: peerId.toInt64()) {
                         return .single(readState)
                     }
                     var pushSignal: Signal<Void, NoError> = network.request(Api.functions.channels.readHistory(channel: Api.InputChannel.inputChannel(.init(channelId: channelId, accessHash: accessHash)), maxId: maxIncomingReadId))

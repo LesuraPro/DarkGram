@@ -21,6 +21,7 @@ import PresentationDataUtils
 import TelegramPresentationData
 import TelegramStringFormatting
 import TextFormat
+import PromptUI
 import UndoUI
 import ShimmerEffect
 import AnimatedAvatarSetNode
@@ -1605,6 +1606,115 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             }))
             actions.append(showEditHistoryAction)
         }
+
+        // MARK: DarkGram - give the message author a local name. Purely local: the contact's
+        // real name on the server is untouched, and the alias replaces it everywhere a title
+        // is drawn because both display-title accessors consult it.
+        if let darkGramAuthor = message.author, darkGramAuthor.id != context.account.peerId {
+            let darkGramAliasLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let setAliasAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.SetAlias", darkGramAliasLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                let darkGramPeerId = darkGramAuthor.id.toInt64()
+                controllerInteraction.presentController(promptController(
+                    context: context,
+                    text: i18n("ContextMenu.SetAlias", darkGramAliasLang),
+                    subtitle: i18n("ContextMenu.SetAlias.Subtitle", darkGramAliasLang),
+                    value: SGSimpleSettings.shared.contactAlias(forPeerId: darkGramPeerId) ?? "",
+                    placeholder: EnginePeer(darkGramAuthor).compactDisplayTitle,
+                    characterLimit: 64,
+                    apply: { newAlias in
+                        // A nil value means the prompt was cancelled; an empty one means clear.
+                        guard let newAlias = newAlias else {
+                            return
+                        }
+                        SGSimpleSettings.shared.setContactAlias(newAlias, forPeerId: darkGramPeerId)
+                    }
+                ), nil)
+                f(.default)
+            }))
+            actions.append(setAliasAction)
+        }
+
+        // MARK: DarkGram - a private note about the author, alongside the alias. Same storage
+        // shape, same prompt; the two answer different questions -- what to call them, and who
+        // they are.
+        if let darkGramNoteAuthor = message.author, darkGramNoteAuthor.id != context.account.peerId {
+            let darkGramNoteLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let noteAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.ContactNote", darkGramNoteLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                let darkGramNotePeerId = darkGramNoteAuthor.id.toInt64()
+                controllerInteraction.presentController(promptController(
+                    context: context,
+                    text: i18n("ContextMenu.ContactNote", darkGramNoteLang),
+                    subtitle: i18n("ContextMenu.ContactNote.Subtitle", darkGramNoteLang),
+                    value: SGSimpleSettings.shared.contactNote(forPeerId: darkGramNotePeerId) ?? "",
+                    placeholder: EnginePeer(darkGramNoteAuthor).compactDisplayTitle,
+                    characterLimit: 500,
+                    apply: { newNote in
+                        guard let newNote = newNote else {
+                            return
+                        }
+                        SGSimpleSettings.shared.setContactNote(newNote, forPeerId: darkGramNotePeerId)
+                    }
+                ), nil)
+                f(.default)
+            }))
+            actions.append(noteAction)
+        }
+
+        // MARK: DarkGram - ghost this one chat, independently of the global switch.
+        if let darkGramGhostPeer = chatPresentationInterfaceState.renderedPeer?.peer {
+            let darkGramGhostLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let darkGramGhostPeerId = darkGramGhostPeer.id.toInt64()
+            let isGhosted = SGSimpleSettings.shared.perChatGhostPeerIds.contains(String(darkGramGhostPeerId))
+            let ghostAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n(isGhosted ? "ContextMenu.UnghostChat" : "ContextMenu.GhostChat", darkGramGhostLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                SGSimpleSettings.shared.setPerChatGhost(!isGhosted, forPeerId: darkGramGhostPeerId)
+                f(.default)
+            }))
+            actions.append(ghostAction)
+        }
+
+        // MARK: DarkGram - export this chat. Placed on the message menu because that is where
+        // you already are when you decide you want the history out of the app.
+        if let darkGramExportPeer = chatPresentationInterfaceState.renderedPeer?.peer {
+            let darkGramExportLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let exportAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.ExportChat", darkGramExportLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                darkGramExportChat(
+                    controllerInteraction: controllerInteraction,
+                    chatPresentationInterfaceState: chatPresentationInterfaceState,
+                    context: context,
+                    peerId: darkGramExportPeer.id,
+                    chatTitle: EnginePeer(darkGramExportPeer).compactDisplayTitle
+                )
+                f(.default)
+            }))
+            actions.append(exportAction)
+        }
+
+        // MARK: DarkGram - one summary covering both the contact relationship and what the
+        // cached history holds. It reuses the export walker, so the numbers describe exactly
+        // the same scope the export writes out.
+        if let darkGramInfoPeer = chatPresentationInterfaceState.renderedPeer?.peer {
+            let darkGramInfoLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let infoAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.ChatInfo", darkGramInfoLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                darkGramShowChatInfo(
+                    controllerInteraction: controllerInteraction,
+                    chatPresentationInterfaceState: chatPresentationInterfaceState,
+                    context: context,
+                    peer: darkGramInfoPeer
+                )
+                f(.default)
+            }))
+            actions.append(infoAction)
+        }
         
         var threadId: Int64?
         var threadMessageCount: Int = 0
@@ -2381,7 +2491,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             })), at: 0)
             sgActions.insert(.separator, at: 1)
             
-            let swiftgramSubMenu: ContextMenuItem = .action(ContextMenuActionItem(text: "Swiftgram", icon: { theme in
+            let swiftgramSubMenu: ContextMenuItem = .action(ContextMenuActionItem(text: "DarkGram", icon: { theme in
                 return generateTintedImage(image: UIImage(bundleImageName: "SwiftgramContextMenu"), color: theme.actionSheet.primaryTextColor)
             }, action: { c, f in
                 popSGItems = { [weak c] in

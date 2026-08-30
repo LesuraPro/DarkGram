@@ -80,7 +80,9 @@ public class SGSimpleSettings {
             { let _ = self.keepDeletedMessages },
             { let _ = self.keepEditHistory },
             { let _ = self.bypassCopyProtection },
-            { let _ = self.confirmSendToGroup }
+            { let _ = self.confirmSendToGroup },
+            { let _ = self.ghostScheduleEnabled },
+            { let _ = self.perChatGhostPeerIds }
         ]
 
         tasks.forEach { task in
@@ -92,6 +94,52 @@ public class SGSimpleSettings {
         // dispatchGroup.notify(queue: DispatchQueue.main) {}
     }
     
+    // MARK: DarkGram - settings backup.
+    // A free Apple ID signature lasts seven days, so the app gets reinstalled constantly and
+    // every toggle is lost each time. Keys is CaseIterable, so the whole set round-trips without
+    // a hand-maintained list that would silently drift as settings are added.
+
+    /// Serialises every known setting that currently has a stored value.
+    /// Values that JSON cannot represent are skipped rather than failing the whole export.
+    public func exportToJSON() -> Data? {
+        var payload: [String: Any] = [:]
+        let defaults = UserDefaults.standard
+        for key in Keys.allCases {
+            guard let value = defaults.object(forKey: key.rawValue) else {
+                continue
+            }
+            if JSONSerialization.isValidJSONObject([value]) {
+                payload[key.rawValue] = value
+            }
+        }
+        guard !payload.isEmpty else {
+            return nil
+        }
+        return try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+    }
+
+    /// Restores settings from a previously exported file.
+    /// Unknown keys are ignored, so a file from a newer or older build cannot inject
+    /// arbitrary values into UserDefaults. Returns how many settings were applied.
+    @discardableResult
+    public func importFromJSON(_ data: Data) -> Int {
+        guard let payload = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
+            return 0
+        }
+        let knownKeys = Set(Keys.allCases.map({ $0.rawValue }))
+        let defaults = UserDefaults.standard
+        var applied = 0
+        for (key, value) in payload where knownKeys.contains(key) {
+            defaults.set(value, forKey: key)
+            applied += 1
+        }
+        if applied > 0 {
+            defaults.synchronize()
+            self.synchronizeShared()
+        }
+        return applied
+    }
+
     public func synchronizeShared() {
         if let groupUserDefaults = UserDefaults(suiteName: APP_GROUP_IDENTIFIER) {
             groupUserDefaults.synchronize()
@@ -170,6 +218,15 @@ public class SGSimpleSettings {
         case videoPIPSwipeDirection
         case legacyNotificationsFix
         case messageFilterKeywords
+        case notifyKeywords
+        case quickReplies
+        case contactAliases
+        case contactNotes
+        case ghostScheduleEnabled
+        case ghostScheduleFromHour
+        case ghostScheduleToHour
+        case keywordAlertSound
+        case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
         case mentionsAndRepliesNotifications
@@ -332,6 +389,13 @@ public class SGSimpleSettings {
         Keys.confirmCalls.rawValue: true,
         Keys.videoPIPSwipeDirection.rawValue: VideoPIPSwipeDirection.up.rawValue,
         Keys.messageFilterKeywords.rawValue: [],
+        Keys.notifyKeywords.rawValue: [],
+        Keys.quickReplies.rawValue: [],
+        Keys.ghostScheduleEnabled.rawValue: false,
+        Keys.ghostScheduleFromHour.rawValue: 0,
+        Keys.ghostScheduleToHour.rawValue: 7,
+        Keys.keywordAlertSound.rawValue: true,
+        Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
         Keys.dismissedSGSuggestions.rawValue: [],
@@ -388,6 +452,46 @@ public class SGSimpleSettings {
     }
     
     public var lastAccountFolders = UserDefaultsBackedDictionary<String, Int32>(userDefaultsKey: Keys.lastAccountFolders.rawValue, threadSafe: false)
+
+    /// MARK: DarkGram - local display names, keyed by peer id. Purely local: the contact's real
+    /// name on the server is never touched, and nothing is uploaded.
+    public var contactAliases = UserDefaultsBackedDictionary<String, String>(userDefaultsKey: Keys.contactAliases.rawValue, threadSafe: true)
+
+    /// Returns the local alias for a peer, or nil when none is set or it is blank.
+    public func contactAlias(forPeerId peerId: Int64) -> String? {
+        guard let alias = self.contactAliases[String(peerId)], !alias.isEmpty else {
+            return nil
+        }
+        return alias
+    }
+
+    /// MARK: DarkGram - free-form private notes about a peer, keyed by peer id.
+    public var contactNotes = UserDefaultsBackedDictionary<String, String>(userDefaultsKey: Keys.contactNotes.rawValue, threadSafe: true)
+
+    public func contactNote(forPeerId peerId: Int64) -> String? {
+        guard let note = self.contactNotes[String(peerId)], !note.isEmpty else {
+            return nil
+        }
+        return note
+    }
+
+    public func setContactNote(_ note: String?, forPeerId peerId: Int64) {
+        let key = String(peerId)
+        if let note = note, !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            self.contactNotes[key] = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            self.contactNotes[key] = nil
+        }
+    }
+
+    public func setContactAlias(_ alias: String?, forPeerId peerId: Int64) {
+        let key = String(peerId)
+        if let alias = alias, !alias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            self.contactAliases[key] = alias.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            self.contactAliases[key] = nil
+        }
+    }
     
     @UserDefault(key: Keys.localDNSForProxyHost.rawValue)
     public var localDNSForProxyHost: Bool
@@ -592,6 +696,77 @@ public class SGSimpleSettings {
     
     @UserDefault(key: Keys.messageFilterKeywords.rawValue)
     public var messageFilterKeywords: [String]
+
+    /// MARK: DarkGram - words that raise a local notification wherever they appear,
+    /// including in muted chats.
+    @UserDefault(key: Keys.notifyKeywords.rawValue)
+    public var notifyKeywords: [String]
+
+    /// MARK: DarkGram - canned reply texts offered from the input toolbar.
+    @UserDefault(key: Keys.quickReplies.rawValue)
+    public var quickReplies: [String]
+
+    /// MARK: DarkGram - turn Ghost Mode on automatically during a nightly window.
+    @UserDefault(key: Keys.ghostScheduleEnabled.rawValue)
+    public var ghostScheduleEnabled: Bool
+
+    @UserDefault(key: Keys.ghostScheduleFromHour.rawValue)
+    public var ghostScheduleFromHour: Int32
+
+    @UserDefault(key: Keys.ghostScheduleToHour.rawValue)
+    public var ghostScheduleToHour: Int32
+
+    /// MARK: DarkGram - give keyword alerts their own sound so they stand out.
+    @UserDefault(key: Keys.keywordAlertSound.rawValue)
+    public var keywordAlertSound: Bool
+
+    /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
+    @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)
+    public var perChatGhostPeerIds: [String]
+
+    /// The single source of truth for whether outgoing signals are suppressed right now.
+    /// Combines the manual switch with the optional schedule; every network seam reads this
+    /// rather than `ghostMode`, so the schedule cannot be forgotten at one of them.
+    public var isGhostModeActive: Bool {
+        if self.ghostMode {
+            return true
+        }
+        guard self.ghostScheduleEnabled else {
+            return false
+        }
+        let hour = Int32(Calendar.current.component(.hour, from: Date()))
+        let from = self.ghostScheduleFromHour
+        let to = self.ghostScheduleToHour
+        if from == to {
+            return false
+        }
+        if from < to {
+            return hour >= from && hour < to
+        }
+        // Window crosses midnight, e.g. 23 -> 7.
+        return hour >= from || hour < to
+    }
+
+    /// True when this specific peer is ghosted, either globally or by its own entry.
+    public func isGhostModeActive(forPeerId peerId: Int64) -> Bool {
+        if self.isGhostModeActive {
+            return true
+        }
+        return self.perChatGhostPeerIds.contains(String(peerId))
+    }
+
+    public func setPerChatGhost(_ enabled: Bool, forPeerId peerId: Int64) {
+        let key = String(peerId)
+        var ids = self.perChatGhostPeerIds
+        if enabled {
+            if !ids.contains(key) {
+                ids.append(key)
+            }
+        } else {
+            ids.removeAll(where: { $0 == key })
+        }
+        self.perChatGhostPeerIds = ids
+    }
     
     @UserDefault(key: Keys.inputToolbar.rawValue)
     public var inputToolbar: Bool

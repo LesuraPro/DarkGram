@@ -6059,6 +6059,12 @@ extension ChatTextInputPanelNode {
                 strongSelf.interfaceInteraction?.updateTextInputStateAndMode { current, inputMode in
                     return (chatTextInputAddFormattingAttribute(forceRemoveAll: true, current, attribute: ChatTextInputAttributes.allAttributes[0], value: nil), inputMode)
                 }
+            },
+            // MARK: DarkGram - canned replies, inserted at the cursor like any typed text.
+            quickReplies: SGSimpleSettings.shared.quickReplies,
+            onQuickReply: { [weak self] replyText in
+                guard let strongSelf = self else { return }
+                strongSelf.insertText(text: NSAttributedString(string: replyText))
             }
         )
         let toolbarHostingController = UIHostingController(rootView: toolbarView)

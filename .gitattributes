@@ -13,3 +13,8 @@ submodules/Stripe/* linguist-vendored
 submodules/ton/tonlib-src/* linguist-vendored
 submodules/webp/include/* linguist-vendored
 third-party/* linguist-vendored
+
+# DarkGram: upstream stores these files with CRLF. Forcing eol=lf would renormalise the
+# whole tree and bury real changes under a hundred-thousand-line diff, so disable line
+# ending conversion entirely and keep whatever is committed.
+* -text

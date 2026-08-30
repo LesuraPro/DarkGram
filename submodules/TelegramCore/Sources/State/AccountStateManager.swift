@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -241,6 +242,14 @@ public final class AccountStateManager {
             return self.isUpdatingValue.get()
         }
         
+        // MARK: DarkGram - messages whose text matched a watched keyword, regardless of whether
+        // the chat is muted. Kept separate from notificationMessagesPipe so the existing
+        // notification path keeps its exact behaviour.
+        private let darkGramKeywordMessagesPipe = ValuePipe<[Message]>()
+        public var darkGramKeywordMessages: Signal<[Message], NoError> {
+            return self.darkGramKeywordMessagesPipe.signal()
+        }
+
         private let notificationMessagesPipe = ValuePipe<[([Message], PeerGroupId, Bool, MessageHistoryThreadData?)]>()
         public var notificationMessages: Signal<[([Message], PeerGroupId, Bool, MessageHistoryThreadData?)], NoError> {
             return self.notificationMessagesPipe.signal()
@@ -1210,6 +1219,33 @@ public final class AccountStateManager {
                     let _ = self.delayNotificatonsUntil.swap(events.delayNotificatonsUntil)
                 }
                 
+                // MARK: DarkGram - scan every incoming message for watched keywords. This runs on
+                // addedIncomingMessageIds directly rather than on the notification path, because
+                // messagesForNotification returns nothing for muted chats -- and a muted channel is
+                // exactly what a keyword watch is for.
+                let darkGramKeywords = SGSimpleSettings.shared.notifyKeywords.filter({ !$0.isEmpty })
+                if !darkGramKeywords.isEmpty {
+                    let darkGramIncomingIds = events.addedIncomingMessageIds
+                    let _ = (self.postbox.transaction { transaction -> [Message] in
+                        var matched: [Message] = []
+                        for id in darkGramIncomingIds {
+                            guard let message = transaction.getMessage(id), !message.text.isEmpty else {
+                                continue
+                            }
+                            let loweredText = message.text.lowercased()
+                            if darkGramKeywords.contains(where: { loweredText.contains($0.lowercased()) }) {
+                                matched.append(message)
+                            }
+                        }
+                        return matched
+                    }
+                    |> deliverOn(self.queue)).start(next: { [weak self] matched in
+                        if let strongSelf = self, !matched.isEmpty {
+                            strongSelf.darkGramKeywordMessagesPipe.putNext(matched)
+                        }
+                    })
+                }
+
                 let signal = self.postbox.transaction { transaction -> [([Message], PeerGroupId, Bool, MessageHistoryThreadData?)] in
                     var messageList: [([Message], PeerGroupId, Bool, MessageHistoryThreadData?)] = []
                     
@@ -1916,6 +1952,13 @@ public final class AccountStateManager {
     public var notificationMessages: Signal<[([Message], PeerGroupId, Bool, MessageHistoryThreadData?)], NoError> {
         return self.impl.signalWith { impl, subscriber in
             return impl.notificationMessages.start(next: subscriber.putNext, error: subscriber.putError, completed: subscriber.putCompletion)
+        }
+    }
+
+    // MARK: DarkGram
+    public var darkGramKeywordMessages: Signal<[Message], NoError> {
+        return self.impl.signalWith { impl, subscriber in
+            return impl.darkGramKeywordMessages.start(next: subscriber.putNext, error: subscriber.putError, completed: subscriber.putCompletion)
         }
     }
     

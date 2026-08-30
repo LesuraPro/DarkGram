@@ -1,129 +1,52 @@
-# Swiftgram
+# DarkGram
 
-Supercharged Telegram fork for iOS
+Неофициальный клиент Telegram для iOS. Форк [Swiftgram](https://github.com/Swiftgram/Telegram-iOS),
+который сам является форком [Telegram-iOS](https://github.com/TelegramMessenger/Telegram-iOS).
 
-[<img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="50">](https://apps.apple.com/app/apple-store/id6471879502?pt=126511626&ct=gh&mt=8)
+## Чем отличается
 
-- Download: [App Store](https://apps.apple.com/app/apple-store/id6471879502?pt=126511626&ct=gh&mt=8)
-- Telegram channel: https://t.me/swiftgram
-- Telegram chat: https://t.me/swiftgramchat
-- TestFlight beta, local chats, translations and other [@SwiftgramLinks](https://t.me/s/SwiftgramLinks)
+**Приватность.** Режим инкогнито не отправляет отметки о прочтении, статус набора текста и
+время в сети. Работает глобально, по расписанию или для отдельных чатов. Истории можно
+смотреть, не отмечая просмотренными.
 
-Swiftgram's compilation steps are the same as for the official app. Below you'll find a complete compilation guide based on the official app.
+**Сообщения не пропадают.** Удалённые собеседником сообщения остаются в чате с пометкой.
+У изменённых сохраняется история версий — прошлый текст доступен через контекстное меню.
 
-# Telegram iOS Source Code Compilation Guide
+**Меньше шума.** Спонсорские сообщения в каналах вырезаны. Из ссылок удаляются `utm_*` и
+рекламные идентификаторы.
 
-We welcome all developers to use our API and source code to create applications on our platform.
-There are several things we require from **all developers** for the moment.
+**Контроль.** Обход защиты от копирования, подтверждение перед отправкой в группу,
+оповещения по ключевым словам с отдельным звуком — включая замьюченные чаты.
 
-# Creating your Telegram Application
+**Мелочи, которых не хватало.** Локальные псевдонимы и заметки о контактах, шаблоны быстрых
+ответов, экспорт чата в HTML, сводка по переписке, резервная копия настроек одним файлом.
 
-1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
-2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
-3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-3. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-4. Please remember to publish **your** code too in order to comply with the licences.
+Полный список и планы — в [ROADMAP.md](ROADMAP.md).
 
-# Quick Compilation Guide
+## Сборка
 
-## Get the Code
+Собирается на macOS через Bazel. Для сборки нужны свои `api_id` и `api_hash`
+с [my.telegram.org](https://my.telegram.org/apps).
 
-```
-git clone --recursive -j8 https://github.com/Swiftgram/Telegram-iOS.git
-```
-
-## Setup Xcode
-
-Install Xcode (directly from https://developer.apple.com/download/applications or using the App Store).
-
-## Adjust Configuration
-
-1. Generate a random identifier:
-```
-openssl rand -hex 8
-```
-2. Create a new Xcode project. Use `Swiftgram` as the Product Name. Use `org.{identifier from step 1}` as the Organization Identifier.
-3. Open `Keychain Access` and navigate to `Certificates`. Locate `Apple Development: your@email.address (XXXXXXXXXX)` and double tap the certificate. Under `Details`, locate `Organizational Unit`. This is the Team ID.
-4. Edit `build-system/template_minimal_development_configuration.json`. Use data from the previous steps.
-
-## Generate an Xcode project
+Проще всего — GitHub Actions: workflow [`build.yml`](.github/workflows/build.yml) собирает
+неподписанный IPA на macOS-раннере. Пуш в `master` запускает сборку автоматически, ветку
+можно собрать вручную:
 
 ```
-python3 build-system/Make/Make.py \
-    --cacheDir="$HOME/telegram-bazel-cache" \
-    generateProject \
-    --configurationPath=build-system/template_minimal_development_configuration.json \
-    --xcodeManagedCodesigning
+gh workflow run build.yml --ref <ветка>
 ```
 
-# Advanced Compilation Guide
+`api_hash` берётся из секрета репозитория `DARKGRAM_API_HASH` и в код не попадает.
 
-## Xcode
+## Установка
 
-1. Copy and edit `build-system/appstore-configuration.json`.
-2. Copy `build-system/fake-codesigning`. Create and download provisioning profiles, using the `profiles` folder as a reference for the entitlements.
-3. Generate an Xcode project:
-```
-python3 build-system/Make/Make.py \
-    --cacheDir="$HOME/telegram-bazel-cache" \
-    generateProject \
-    --configurationPath=configuration_from_step_1.json \
-    --codesigningInformationPath=directory_from_step_2
-```
+Готовый IPA лежит в [релизах](../../releases). Он не подписан — ставится через SideStore
+или другой сайдлоадер вашим Apple ID.
 
-## IPA
+С бесплатным Apple ID подпись действует 7 дней, после чего приложение нужно переподписать.
+Переписка при этом не теряется, но настройки сбрасываются при полной переустановке —
+для этого и сделана выгрузка настроек в файл.
 
-1. Repeat the steps from the previous section. Use distribution provisioning profiles.
-2. Run:
-```
-python3 build-system/Make/Make.py \
-    --cacheDir="$HOME/telegram-bazel-cache" \
-    build \
-    --configurationPath=...see previous section... \
-    --codesigningInformationPath=...see previous section... \
-    --buildNumber=100001 \
-    --configuration=release_arm64
-```
+## Лицензия
 
-# FAQ
-
-## Xcode is stuck at "build-request.json not updated yet"
-
-Occasionally, you might observe the following message in your build log:
-```
-"/Users/xxx/Library/Developer/Xcode/DerivedData/Telegram-xxx/Build/Intermediates.noindex/XCBuildData/xxx.xcbuilddata/build-request.json" not updated yet, waiting...
-```
-
-Should this occur, simply cancel the ongoing build and initiate a new one.
-
-## Telegram_xcodeproj: no such package 
-
-Following a system restart, the auto-generated Xcode project might encounter a build failure accompanied by this error:
-```
-ERROR: Skipping '@rules_xcodeproj_generated//generator/Telegram/Telegram_xcodeproj:Telegram_xcodeproj': no such package '@rules_xcodeproj_generated//generator/Telegram/Telegram_xcodeproj': BUILD file not found in directory 'generator/Telegram/Telegram_xcodeproj' of external repository @rules_xcodeproj_generated. Add a BUILD file to a directory to mark it as a package.
-```
-
-If you encounter this issue, re-run the project generation steps in the README.
-
-
-# Tips
-
-## Codesigning is not required for simulator-only builds
-
-Add `--disableProvisioningProfiles`:
-```
-python3 build-system/Make/Make.py \
-    --cacheDir="$HOME/telegram-bazel-cache" \
-    generateProject \
-    --configurationPath=path-to-configuration.json \
-    --codesigningInformationPath=path-to-provisioning-data \
-    --disableProvisioningProfiles
-```
-
-## Versions
-
-Each release is built using a specific Xcode version (see `versions.json`). The helper script checks the versions of the installed software and reports an error if they don't match the ones specified in `versions.json`. It is possible to bypass these checks:
-
-```
-python3 build-system/Make/Make.py --overrideXcodeVersion build ... # Don't check the version of Xcode
-```
+Наследуется от Telegram-iOS и Swiftgram — GPL v2. Авторские права исходных проектов сохранены.
