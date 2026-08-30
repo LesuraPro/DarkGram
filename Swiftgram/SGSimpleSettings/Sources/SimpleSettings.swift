@@ -83,7 +83,8 @@ public class SGSimpleSettings {
             { let _ = self.confirmSendToGroup },
             { let _ = self.ghostScheduleEnabled },
             { let _ = self.perChatGhostPeerIds },
-            { let _ = self.keywordAlertSound }
+            { let _ = self.keywordAlertSound },
+            { let _ = self.preferLocalSearch }
         ]
 
         tasks.forEach { task in
@@ -227,6 +228,7 @@ public class SGSimpleSettings {
         case ghostScheduleFromHour
         case ghostScheduleToHour
         case keywordAlertSound
+        case preferLocalSearch
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -396,6 +398,7 @@ public class SGSimpleSettings {
         Keys.ghostScheduleFromHour.rawValue: 0,
         Keys.ghostScheduleToHour.rawValue: 7,
         Keys.keywordAlertSound.rawValue: true,
+        Keys.preferLocalSearch.rawValue: true,
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -751,6 +754,10 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - give keyword alerts their own sound so they stand out.
     @UserDefault(key: Keys.keywordAlertSound.rawValue)
     public var keywordAlertSound: Bool
+
+    /// MARK: DarkGram - search cached history before asking the server.
+    @UserDefault(key: Keys.preferLocalSearch.rawValue)
+    public var preferLocalSearch: Bool
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)

@@ -657,7 +657,14 @@ public struct PresentationThemeSettings: Codable {
         // the theme picker still offers every built-in theme.
         let darkGramTheme = PresentationThemeReference.builtin(.night)
         let darkGramAccent = PresentationThemeAccentColor(index: 0, baseColor: .custom, accentColor: 0x8b5cf6)
-        return PresentationThemeSettings(theme: darkGramTheme, themePreferredBaseTheme: [:], themeSpecificAccentColors: [darkGramTheme.index: darkGramAccent], themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: .builtin(.night)), largeEmoji: true, reduceMotion: false)
+        // Ship our own chat background rather than Telegram's default pattern: a near-black
+        // violet gradient, so the app reads as DarkGram at a glance and not only in the accent.
+        let darkGramWallpaper = TelegramWallpaper.gradient(TelegramWallpaper.Gradient(
+            id: nil,
+            colors: [0x11101c, 0x1b1430, 0x0b0d16, 0x241a3d],
+            settings: WallpaperSettings(colors: [0x11101c, 0x1b1430, 0x0b0d16, 0x241a3d])
+        ))
+        return PresentationThemeSettings(theme: darkGramTheme, themePreferredBaseTheme: [:], themeSpecificAccentColors: [darkGramTheme.index: darkGramAccent], themeSpecificChatWallpapers: [darkGramTheme.index: darkGramWallpaper], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: .builtin(.night)), largeEmoji: true, reduceMotion: false)
     }
     
     public init(theme: PresentationThemeReference, themePreferredBaseTheme: [Int64: TelegramBaseTheme], themeSpecificAccentColors: [Int64: PresentationThemeAccentColor], themeSpecificChatWallpapers: [Int64: TelegramWallpaper], useSystemFont: Bool, fontSize: PresentationFontSize, listsFontSize: PresentationFontSize, chatBubbleSettings: PresentationChatBubbleSettings, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting, largeEmoji: Bool, reduceMotion: Bool) {

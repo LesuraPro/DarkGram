@@ -132,6 +132,20 @@ public extension TelegramEngine {
         }
 
         public func searchMessages(location: SearchMessagesLocation, query: String, state: SearchMessagesState?, centerId: MessageId? = nil, limit: Int32 = 100) -> Signal<(SearchMessagesResult, SearchMessagesState), NoError> {
+            // MARK: DarkGram - answer from the local index first. Swiftgram already had the local
+            // path, but only as a fallback after the server returned nothing, so every search paid
+            // a round trip before showing anything and produced nothing at all while offline.
+            // Reversing the order makes cached history answer instantly; the server is still asked
+            // when the local index has nothing, so reach is unchanged.
+            if SGSimpleSettings.shared.preferLocalSearch {
+                return _internal_searchMessages(account: self.account, location: location, query: query, state: state, centerId: centerId, limit: limit, forceLocal: true)
+                |> mapToSignal { localResult -> Signal<(SearchMessagesResult, SearchMessagesState), NoError> in
+                    if localResult.0.totalCount > 0 {
+                        return .single(localResult)
+                    }
+                    return _internal_searchMessages(account: self.account, location: location, query: query, state: state, centerId: centerId, limit: limit)
+                }
+            }
             return _internal_searchMessages(account: self.account, location: location, query: query, state: state, centerId: centerId, limit: limit)
             // TODO(swiftgram): Try to fallback on error when searching. RX is hard...
             |> mapToSignal { result -> Signal<(SearchMessagesResult, SearchMessagesState), NoError> in

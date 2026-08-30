@@ -70,6 +70,7 @@ private enum SGBoolSetting: String {
     case stealthStoryViews
     case ghostScheduleEnabled
     case keywordAlertSound
+    case preferLocalSearch
     case keepDeletedMessages
     case keepEditHistory
     case bypassCopyProtection
@@ -225,6 +226,8 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.ConfirmSend.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .preferLocalSearch, value: SGSimpleSettings.shared.preferLocalSearch, text: i18n("Settings.LocalSearch", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.LocalSearch.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .keywordAlertSound, value: SGSimpleSettings.shared.keywordAlertSound, text: i18n("Settings.KeywordAlertSound", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.KeywordAlertSound.Notice", lang)))
     entries.append(.disclosure(id: id.count, section: .protection, link: .moreFeatures, text: i18n("Settings.MoreFeatures", lang)))
@@ -487,6 +490,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.ghostScheduleEnabled = value
         case .keywordAlertSound:
             SGSimpleSettings.shared.keywordAlertSound = value
+        case .preferLocalSearch:
+            SGSimpleSettings.shared.preferLocalSearch = value
         case .keepDeletedMessages:
             SGSimpleSettings.shared.keepDeletedMessages = value
         case .keepEditHistory:

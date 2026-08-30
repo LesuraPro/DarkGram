@@ -337,3 +337,5 @@
 "ChatInfo.Deleted" = "Kept after deletion";
 "ChatInfo.Range" = "Period";
 "ChatInfo.Notice" = "Counts cover the history stored on this device, not the full server-side history.";
+"Settings.LocalSearch" = "Search downloaded history first";
+"Settings.LocalSearch.Notice" = "Results from messages already on this device appear instantly and work with no connection. The server is still asked when nothing is found locally.";
