@@ -211,6 +211,8 @@ func settingsItems(showProfileId: Bool, data: PeerInfoScreenData?, context: Acco
 
     // MARK: DarkGram - one entry point. The former second row led to a screen named after a
     // subscription that no longer exists here; its contents now hang off the DarkGram screen.
+    // sgWebSettings stays: the Telegram Gifts row further down reads it.
+    let sgWebSettings = context.currentAppConfiguration.with({ $0 }).sgWebSettings
     items[.swiftgram]!.append(PeerInfoScreenDisclosureItem(id: 1, label: swiftgramLabel, text: "DarkGram", icon: PresentationResourcesSettings.swiftgram, action: {
         interaction.openSettings(.swiftgram)
     }))
