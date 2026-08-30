@@ -295,3 +295,7 @@
 "ContextMenu.EditHistory.Current" = "Current version:";
 "Settings.History.BypassCopyProtection" = "Ignore content protection";
 "Settings.History.BypassCopyProtection.Notice" = "Allows saving media and copying text in chats and channels where the owner disabled it. The restriction is enforced only by the app, so lifting it stays on this device.";
+"SendConfirmation.Title" = "Send to this chat?";
+"SendConfirmation.Send" = "Send";
+"Settings.ConfirmSend" = "Confirm sending to groups";
+"Settings.ConfirmSend.Notice" = "Asks for confirmation before posting into a group or channel, naming the chat. One-to-one chats are never interrupted.";

@@ -290,3 +290,7 @@
 "ContextMenu.EditHistory.Current" = "Текущая версия:";
 "Settings.History.BypassCopyProtection" = "Игнорировать защиту контента";
 "Settings.History.BypassCopyProtection.Notice" = "Разрешает сохранять медиа и копировать текст в чатах и каналах, где владелец это запретил. Запрет соблюдает само приложение, поэтому его снятие остаётся на этом устройстве.";
+"SendConfirmation.Title" = "Отправить в этот чат?";
+"SendConfirmation.Send" = "Отправить";
+"Settings.ConfirmSend" = "Подтверждать отправку в группы";
+"Settings.ConfirmSend.Notice" = "Спрашивает подтверждение перед отправкой в группу или канал и показывает название чата. Личные переписки не затрагиваются.";

@@ -1,4 +1,5 @@
 import SGSimpleSettings
+import SGStrings
 import Foundation
 import UIKit
 import Postbox
@@ -432,6 +433,9 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     var chatThemeAndDarkAppearancePreviewPromise = Promise<(ChatTheme?, Bool?)>((nil, nil))
     var didSetPresentationData = false
     var presentationData: PresentationData
+    // MARK: DarkGram - set while re-entering sendMessages after the user confirmed,
+    // so the confirmation is asked once rather than looping.
+    private var darkGramConfirmedSend = false
     var presentationDataPromise = Promise<PresentationData>()
     override public var updatedPresentationData: (PresentationData, Signal<PresentationData, NoError>) {
         return (self.presentationData, self.presentationDataPromise.get())
@@ -9034,6 +9038,33 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     }
     
     func sendMessages(_ messages: [EnqueueMessage], media: Bool = false, postpone: Bool = false, commit: Bool = false) {
+        // MARK: DarkGram - confirm before posting into a group or channel, where sending to the
+        // wrong chat is both easy and public. One-to-one chats are left alone: a prompt on every
+        // private message would be unusable.
+        if SGSimpleSettings.shared.confirmSendToGroup, !self.darkGramConfirmedSend,
+           let darkGramPeer = self.presentationInterfaceState.renderedPeer?.peer,
+           darkGramPeer.id.namespace != Namespaces.Peer.CloudUser,
+           darkGramPeer.id.namespace != Namespaces.Peer.SecretChat {
+            let darkGramLang = self.presentationData.strings.baseLanguageCode
+            self.present(textAlertController(
+                context: self.context,
+                updatedPresentationData: self.updatedPresentationData,
+                title: i18n("SendConfirmation.Title", darkGramLang),
+                text: EnginePeer(darkGramPeer).compactDisplayTitle,
+                actions: [
+                    TextAlertAction(type: .genericAction, title: self.presentationData.strings.Common_Cancel, action: {}),
+                    TextAlertAction(type: .defaultAction, title: i18n("SendConfirmation.Send", darkGramLang), action: { [weak self] in
+                        guard let self else {
+                            return
+                        }
+                        self.darkGramConfirmedSend = true
+                        self.sendMessages(messages, media: media, postpone: postpone, commit: commit)
+                        self.darkGramConfirmedSend = false
+                    })
+                ]
+            ), in: .window(.root))
+            return
+        }
         if case let .customChatContents(customChatContents) = self.subject {
             customChatContents.enqueueMessages(messages: messages)
             return

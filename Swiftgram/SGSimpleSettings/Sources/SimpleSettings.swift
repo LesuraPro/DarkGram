@@ -79,7 +79,8 @@ public class SGSimpleSettings {
             { let _ = self.stealthStoryViews },
             { let _ = self.keepDeletedMessages },
             { let _ = self.keepEditHistory },
-            { let _ = self.bypassCopyProtection }
+            { let _ = self.bypassCopyProtection },
+            { let _ = self.confirmSendToGroup }
         ]
 
         tasks.forEach { task in
@@ -117,6 +118,7 @@ public class SGSimpleSettings {
         case keepDeletedMessages
         case keepEditHistory
         case bypassCopyProtection
+        case confirmSendToGroup
         case disableSwipeToRecordStory
         case quickTranslateButton
         case outgoingLanguageTranslation
@@ -280,6 +282,7 @@ public class SGSimpleSettings {
         Keys.keepDeletedMessages.rawValue: false,
         Keys.keepEditHistory.rawValue: false,
         Keys.bypassCopyProtection.rawValue: false,
+        Keys.confirmSendToGroup.rawValue: false,
         Keys.canUseStealthMode.rawValue: true,
         Keys.disableSwipeToRecordStory.rawValue: false,
         Keys.quickTranslateButton.rawValue: false,
@@ -426,6 +429,10 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - ignore content protection on restricted chats.
     @UserDefault(key: Keys.bypassCopyProtection.rawValue)
     public var bypassCopyProtection: Bool
+
+    /// MARK: DarkGram - ask before posting into a group or channel.
+    @UserDefault(key: Keys.confirmSendToGroup.rawValue)
+    public var confirmSendToGroup: Bool
     
     @UserDefault(key: Keys.disableSwipeToRecordStory.rawValue)
     public var disableSwipeToRecordStory: Bool   
