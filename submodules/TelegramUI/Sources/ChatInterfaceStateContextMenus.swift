@@ -20,6 +20,7 @@ import SaveToCameraRoll
 import PresentationDataUtils
 import TelegramPresentationData
 import TelegramStringFormatting
+import TextFormat
 import UndoUI
 import ShimmerEffect
 import AnimatedAvatarSetNode
@@ -1578,6 +1579,31 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             actions.append(showJsonAction)
         } else {
             sgActions.append(showJsonAction)
+        }
+
+        // MARK: DarkGram - previous versions of an edited message. The entry only appears when
+        // revisions were actually recorded, so it stays out of the way on untouched messages.
+        if let darkGramEditHistory = message.darkGramEditHistoryAttribute, !darkGramEditHistory.texts.isEmpty {
+            let darkGramLang = chatPresentationInterfaceState.strings.baseLanguageCode
+            let showEditHistoryAction: ContextMenuItem = .action(ContextMenuActionItem(text: i18n("ContextMenu.EditHistory", darkGramLang), icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                let dateTimeFormat = chatPresentationInterfaceState.dateTimeFormat
+                var revisionLines: [String] = []
+                for (index, revisionText) in darkGramEditHistory.texts.enumerated() {
+                    let revisionTimestamp = index < darkGramEditHistory.timestamps.count ? darkGramEditHistory.timestamps[index] : 0
+                    revisionLines.append(stringForMessageTimestamp(timestamp: revisionTimestamp, dateTimeFormat: dateTimeFormat) + "\n" + revisionText)
+                }
+                revisionLines.append(i18n("ContextMenu.EditHistory.Current", darkGramLang) + "\n" + message.text)
+                controllerInteraction.presentController(textAlertController(
+                    context: context,
+                    title: i18n("ContextMenu.EditHistory", darkGramLang),
+                    text: revisionLines.joined(separator: "\n" + "\n"),
+                    actions: [TextAlertAction(type: .defaultAction, title: chatPresentationInterfaceState.strings.Common_OK, action: {})]
+                ), nil)
+                f(.default)
+            }))
+            actions.append(showEditHistoryAction)
         }
         
         var threadId: Int64?

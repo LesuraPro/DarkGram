@@ -291,3 +291,5 @@
 "Settings.History.KeepDeleted" = "Keep deleted messages";
 "Settings.History.KeepEdits" = "Keep edit history";
 "Settings.History.Notice" = "Deleted incoming messages stay in this chat instead of disappearing, and earlier versions of edited messages are recorded. Applies only to messages received while this is on; nothing is uploaded anywhere.";
+"ContextMenu.EditHistory" = "Edit history";
+"ContextMenu.EditHistory.Current" = "Current version:";

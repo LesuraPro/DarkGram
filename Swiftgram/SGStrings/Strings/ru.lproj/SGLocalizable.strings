@@ -286,3 +286,5 @@
 "Settings.History.KeepDeleted" = "Сохранять удалённые";
 "Settings.History.KeepEdits" = "Хранить историю правок";
 "Settings.History.Notice" = "Удалённые входящие сообщения остаются в чате, а прошлые версии изменённых сохраняются. Работает только для сообщений, полученных при включённой настройке; никуда не отправляется.";
+"ContextMenu.EditHistory" = "История правок";
+"ContextMenu.EditHistory.Current" = "Текущая версия:";
