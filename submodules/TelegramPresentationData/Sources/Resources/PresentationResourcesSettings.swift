@@ -117,7 +117,10 @@ let colorGray = UIColor(rgb: 0x8E8E93)
 let colorViolet = UIColor(rgb: 0x5E5CE6)
 
 public struct PresentationResourcesSettings {
-    public static let swiftgram = renderSettingsIcon(name: "SwiftgramSettings", scaleFactor: 30.0 / 512.0)
+    // MARK: DarkGram - the settings row echoes the app icon: the same paper dart over the
+    // same violet-to-cyan gradient. renderSettingsIcon treats the artwork as a mask and fills
+    // it white, so the asset is a glyph on transparency rather than a finished tile.
+    public static let swiftgram = renderSettingsIcon(name: "DarkGramSettings", scaleFactor: 30.0 / 512.0, backgroundColors: [UIColor(rgb: 0x22D3EE), UIColor(rgb: 0x7C3AED)])
     public static let swiftgramPro = renderSettingsIcon(name: "SwiftgramPro", scaleFactor: 30.0 / 256.0)
     public static let proxy = renderSettingsIcon(name: "Item List/Icons/Proxy", backgroundColors: [colorGreen])
     public static let savedMessages = renderSettingsIcon(name: "Item List/Icons/SavedMessages", backgroundColors: [colorBlue])

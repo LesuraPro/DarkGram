@@ -426,7 +426,7 @@ private enum DebugControllerEntry: ItemListNodeEntry {
                 title = "Send Swiftgram Logs"
                 logCollectionSignal = SGLogger.shared.collectLogs()
                 fileName = "Log-iOS-Swiftgram.txt"
-                appName = "Swiftgram"
+                appName = "DarkGram"
             }
             return ItemListDisclosureItem(presentationData: presentationData, systemStyle: .glass, title: title, label: "", sectionId: self.section, style: .blocks, action: {
                 let _ = (logCollectionSignal
