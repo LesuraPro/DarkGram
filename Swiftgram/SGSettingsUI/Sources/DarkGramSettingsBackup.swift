@@ -17,7 +17,7 @@ import SwiftSignalKit
 // Plain UIKit rather than Telegram's controller stack: this module has no dependency on the
 // app's presentation layer, and adding one for two dialogs would not pay for itself.
 
-private func darkGramTopViewController() -> UIViewController? {
+func darkGramTopViewController() -> UIViewController? {
     let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
         ?? UIApplication.shared.windows.first
     var controller = keyWindow?.rootViewController

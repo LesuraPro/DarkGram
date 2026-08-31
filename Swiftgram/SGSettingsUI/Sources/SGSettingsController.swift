@@ -34,6 +34,8 @@ private enum SGControllerSection: Int32, SGItemListSection {
     case protection
     case backup
     case diagnostics
+    case privacyAudit
+    case connectionInfo
     case tabs
     case folders
     case chatList
@@ -259,6 +261,8 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     } else {
         id.increment(1)
     }
+    entries.append(.disclosure(id: id.count, section: .diagnostics, link: .privacyAudit, text: i18n("Privacy.Audit.Title", lang)))
+    entries.append(.disclosure(id: id.count, section: .diagnostics, link: .connectionInfo, text: i18n("Connection.Title", lang)))
     entries.append(.disclosure(id: id.count, section: .diagnostics, link: .diagnostics, text: i18n("Settings.Diagnostics.LastFailure", lang)))
     entries.append(.notice(id: id.count, section: .diagnostics, text: i18n("Settings.Diagnostics.Notice", lang)))
 
@@ -838,6 +842,10 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
                 darkGramImportSettings(context: context, lang: currentLang)
             case .diagnostics:
                 darkGramShowDiagnostics(lang: currentLang)
+            case .privacyAudit:
+                darkGramShowPrivacyAudit(context: context, lang: currentLang)
+            case .connectionInfo:
+                darkGramShowConnectionInfo(context: context, lang: currentLang)
             case .languageSettings:
                 pushControllerImpl?(context.sharedContext.makeLocalizationListController(context: context))
             case .contentSettings:
