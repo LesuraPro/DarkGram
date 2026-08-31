@@ -5884,15 +5884,32 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
                         f()
                     case let .openContextMenu(openContextMenu):
                         // MARK: Swiftgram
-                        sgHandleDoubleTapMessageAction(incoming: openContextMenu.tapMessage.effectivelyIncoming(item.context.account.peerId), message: openContextMenu.tapMessage, editAction: {
-                            item.controllerInteraction.sgStartMessageEdit(openContextMenu.tapMessage)
-                        }, defaultAction: {
+                        let darkGramDefaultAction: () -> Void = {
                             if canAddMessageReactions(message: EngineMessage(openContextMenu.tapMessage)) {
                                 item.controllerInteraction.updateMessageReaction(openContextMenu.tapMessage, .default, false, nil)
                             } else {
                                 item.controllerInteraction.openMessageContextMenu(openContextMenu.tapMessage, openContextMenu.selectAll, self, openContextMenu.subFrame, nil, nil)
                             }
-                        })
+                        }
+                        // MARK: DarkGram
+                        // A long press lands in this case too. Routing it through the gesture
+                        // setting would let a double-tap preference swallow the context menu, so
+                        // only an actual double tap is allowed to take the configured action.
+                        if case .doubleTap = gesture {
+                            sgHandleDoubleTapMessageAction(incoming: openContextMenu.tapMessage.effectivelyIncoming(item.context.account.peerId), message: openContextMenu.tapMessage, editAction: {
+                                item.controllerInteraction.sgStartMessageEdit(openContextMenu.tapMessage)
+                            }, replyAction: {
+                                item.controllerInteraction.setupReply(openContextMenu.tapMessage.id)
+                            }, copyAction: {
+                                if openContextMenu.tapMessage.text.isEmpty {
+                                    darkGramDefaultAction()
+                                } else {
+                                    item.controllerInteraction.copyText(openContextMenu.tapMessage.text)
+                                }
+                            }, defaultAction: darkGramDefaultAction)
+                        } else {
+                            darkGramDefaultAction()
+                        }
                         //
                     }
                 } else if case .tap = gesture {
@@ -5901,6 +5918,12 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
                     // MARK: Swiftgram
                     sgHandleDoubleTapMessageAction(incoming: item.message.effectivelyIncoming(item.context.account.peerId), message: item.message, editAction: {
                         item.controllerInteraction.sgStartMessageEdit(item.message)
+                    }, replyAction: {
+                        item.controllerInteraction.setupReply(item.message.id)
+                    }, copyAction: {
+                        if !item.message.text.isEmpty {
+                            item.controllerInteraction.copyText(item.message.text)
+                        }
                     }, defaultAction: {
                         if canAddMessageReactions(message: EngineMessage(item.message)) {
                             item.controllerInteraction.updateMessageReaction(item.message, .default, false, nil)

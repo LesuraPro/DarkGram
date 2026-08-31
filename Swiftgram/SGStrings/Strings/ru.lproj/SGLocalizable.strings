@@ -309,7 +309,7 @@
 "Settings.Backup.Title" = "Резервная копия настроек";
 "Settings.Backup.Export" = "Выгрузить настройки";
 "Settings.Backup.Import" = "Загрузить настройки";
-"Settings.Backup.Notice" = "Сохраняет все переключатели DarkGram в один файл. Подпись бесплатного Apple ID живёт 7 дней, так что делайте копию перед переустановкой.";
+"Settings.Backup.Notice" = "Сохраняет все переключатели DarkGram в один файл. Переподпись и установка новой сборки настройки сохраняют; теряются они только при удалении приложения.";
 "SettingsBackup.Export.Failed" = "Не удалось записать файл настроек.";
 "SettingsBackup.Import.Failed" = "В файле нет распознаваемых настроек.";
 "SettingsBackup.Import.Done" = "Настройки восстановлены. Перезапустите приложение, чтобы применить всё.";
@@ -350,3 +350,10 @@
 "ChatInfo.Storage" = "Медиа в кэше";
 "ChatList.Ghost.Enable" = "Включить инкогнито";
 "ChatList.Ghost.Disable" = "Выключить инкогнито";
+"Settings.Gestures.DoubleTapIncoming" = "Двойное нажатие по чужому сообщению";
+"Settings.Gestures.DoubleTapOutgoing" = "Двойное нажатие по своему сообщению";
+"Settings.Gestures.Action.default" = "Отправить реакцию";
+"Settings.Gestures.Action.none" = "Ничего не делать";
+"Settings.Gestures.Action.edit" = "Редактировать";
+"Settings.Gestures.Action.reply" = "Ответить";
+"Settings.Gestures.Action.copy" = "Скопировать текст";

@@ -211,6 +211,8 @@ public class SGSimpleSettings {
         case allChatsHidden
         case defaultEmojisFirst
         case messageDoubleTapActionOutgoing
+        // MARK: DarkGram
+        case messageDoubleTapActionIncoming
         case wideChannelPosts
         case forceEmojiTab
         case forceBuiltInMic
@@ -287,6 +289,14 @@ public class SGSimpleSettings {
         case `default`
         case none
         case edit
+        // MARK: DarkGram
+        case reply
+        case copy
+
+        /// Editing someone else's message is not a thing, so that choice is hidden for incoming.
+        public static func available(incoming: Bool) -> [MessageDoubleTapAction] {
+            return allCases.filter { incoming ? $0 != .edit : true }
+        }
     }
     
     public enum VideoPIPSwipeDirection: String, CaseIterable {
@@ -386,6 +396,7 @@ public class SGSimpleSettings {
         Keys.allChatsHidden.rawValue: false,
         Keys.defaultEmojisFirst.rawValue: false,
         Keys.messageDoubleTapActionOutgoing.rawValue: MessageDoubleTapAction.default.rawValue,
+        Keys.messageDoubleTapActionIncoming.rawValue: MessageDoubleTapAction.default.rawValue,
         Keys.wideChannelPosts.rawValue: false,
         Keys.forceEmojiTab.rawValue: false,
         Keys.hideChannelBottomButton.rawValue: false,
@@ -699,6 +710,12 @@ public class SGSimpleSettings {
     
     @UserDefault(key: Keys.messageDoubleTapActionOutgoing.rawValue)
     public var messageDoubleTapActionOutgoing: String
+
+    // MARK: DarkGram
+    // Upstream fixed the incoming gesture to the reaction, so the most common message in any
+    // chat -- someone else's -- had no configurable gesture at all.
+    @UserDefault(key: Keys.messageDoubleTapActionIncoming.rawValue)
+    public var messageDoubleTapActionIncoming: String
     
     @UserDefault(key: Keys.wideChannelPosts.rawValue)
     public var wideChannelPosts: Bool

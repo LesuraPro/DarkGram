@@ -25,7 +25,6 @@ import PeerNameColorScreen
 import UndoUI
 import SGProUI
 
-
 private enum SGControllerSection: Int32, SGItemListSection {
     case search
     case trending
@@ -109,7 +108,6 @@ private enum SGBoolSetting: String {
     case compactFolderNames
     case allChatsHidden
     case defaultEmojisFirst
-    case messageDoubleTapActionOutgoingEdit
     case wideChannelPosts
     case forceEmojiTab
     case forceBuiltInMic
@@ -133,6 +131,9 @@ private enum SGOneFromManySetting: String {
     case transcriptionBackend
     case ghostScheduleFrom
     case ghostScheduleTo
+    // MARK: DarkGram
+    case doubleTapIncoming
+    case doubleTapOutgoing
 }
 
 private enum SGSliderSetting: String {
@@ -397,7 +398,10 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.toggle(id: id.count, section: .other, settingName: .hideChannelBottomButton, value: !SGSimpleSettings.shared.hideChannelBottomButton, text: i18n("Settings.showChannelBottomButton", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .other, settingName: .wideChannelPosts, value: SGSimpleSettings.shared.wideChannelPosts, text: i18n("Settings.wideChannelPosts", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .other, settingName: .secondsInMessages, value: SGSimpleSettings.shared.secondsInMessages, text: i18n("Settings.secondsInMessages", lang), enabled: true))
-    entries.append(.toggle(id: id.count, section: .other, settingName: .messageDoubleTapActionOutgoingEdit, value: SGSimpleSettings.shared.messageDoubleTapActionOutgoing == SGSimpleSettings.MessageDoubleTapAction.edit.rawValue, text: i18n("Settings.messageDoubleTapActionOutgoingEdit", lang), enabled: true))
+    // MARK: DarkGram - a two-state toggle could not express five actions, let alone the
+    // incoming side, which upstream did not expose at all.
+    entries.append(.oneFromManySelector(id: id.count, section: .other, settingName: .doubleTapIncoming, text: i18n("Settings.Gestures.DoubleTapIncoming", lang), value: i18n("Settings.Gestures.Action.\(SGSimpleSettings.shared.messageDoubleTapActionIncoming)", lang), enabled: true))
+    entries.append(.oneFromManySelector(id: id.count, section: .other, settingName: .doubleTapOutgoing, text: i18n("Settings.Gestures.DoubleTapOutgoing", lang), value: i18n("Settings.Gestures.Action.\(SGSimpleSettings.shared.messageDoubleTapActionOutgoing)", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .other, settingName: .hideRecordingButton, value: !SGSimpleSettings.shared.hideRecordingButton, text: i18n("Settings.RecordingButton", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .other, settingName: .disableSnapDeletionEffect, value: !SGSimpleSettings.shared.disableSnapDeletionEffect, text: i18n("Settings.SnapDeletionEffect", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .other, settingName: .disableSendAsButton, value: !SGSimpleSettings.shared.disableSendAsButton, text: i18n("Settings.SendAsButton", lang, strings.Conversation_SendMesageAs), enabled: true))
@@ -595,8 +599,6 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             askForRestart?()
         case .defaultEmojisFirst:
             SGSimpleSettings.shared.defaultEmojisFirst = value
-        case .messageDoubleTapActionOutgoingEdit:
-            SGSimpleSettings.shared.messageDoubleTapActionOutgoing = value ? SGSimpleSettings.MessageDoubleTapAction.edit.rawValue : SGSimpleSettings.MessageDoubleTapAction.default.rawValue
         case .wideChannelPosts:
             SGSimpleSettings.shared.wideChannelPosts = value
         case .forceEmojiTab:
@@ -682,6 +684,20 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
                     items.append(ActionSheetButtonItem(title: i18n("Settings.DownloadsBoost.\(value.rawValue)", presentationData.strings.baseLanguageCode), color: .accent, action: { [weak actionSheet] in
                         actionSheet?.dismissAnimated()
                         setAction(value.rawValue)
+                    }))
+                }
+            case .doubleTapIncoming, .doubleTapOutgoing:
+                // MARK: DarkGram
+                let isIncoming = setting == .doubleTapIncoming
+                for action in SGSimpleSettings.MessageDoubleTapAction.available(incoming: isIncoming) {
+                    items.append(ActionSheetButtonItem(title: i18n("Settings.Gestures.Action." + action.rawValue, presentationData.strings.baseLanguageCode), color: .accent, action: { [weak actionSheet] in
+                        actionSheet?.dismissAnimated()
+                        if isIncoming {
+                            SGSimpleSettings.shared.messageDoubleTapActionIncoming = action.rawValue
+                        } else {
+                            SGSimpleSettings.shared.messageDoubleTapActionOutgoing = action.rawValue
+                        }
+                        simplePromise.set(true)
                     }))
                 }
             case .ghostScheduleFrom, .ghostScheduleTo:

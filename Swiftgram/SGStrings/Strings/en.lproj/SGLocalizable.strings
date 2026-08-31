@@ -314,7 +314,7 @@
 "Settings.Backup.Title" = "Settings backup";
 "Settings.Backup.Export" = "Export settings";
 "Settings.Backup.Import" = "Import settings";
-"Settings.Backup.Notice" = "Saves every DarkGram toggle to one file. A free Apple ID signature expires after seven days, so keep a copy before reinstalling.";
+"Settings.Backup.Notice" = "Saves every DarkGram toggle to one file. Refreshing the signature and installing a newer build both keep your settings; only deleting the app loses them.";
 "SettingsBackup.Export.Failed" = "Could not write the settings file.";
 "SettingsBackup.Import.Failed" = "That file holds no recognisable settings.";
 "SettingsBackup.Import.Done" = "Settings restored. Restart the app to apply everything.";
@@ -355,3 +355,10 @@
 "ChatInfo.Storage" = "Cached media";
 "ChatList.Ghost.Enable" = "Turn on Ghost Mode";
 "ChatList.Ghost.Disable" = "Turn off Ghost Mode";
+"Settings.Gestures.DoubleTapIncoming" = "Double tap on their message";
+"Settings.Gestures.DoubleTapOutgoing" = "Double tap on your message";
+"Settings.Gestures.Action.default" = "Send a reaction";
+"Settings.Gestures.Action.none" = "Do nothing";
+"Settings.Gestures.Action.edit" = "Edit";
+"Settings.Gestures.Action.reply" = "Reply";
+"Settings.Gestures.Action.copy" = "Copy text";
