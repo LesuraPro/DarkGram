@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Postbox
 import TelegramCore
 import SwiftSignalKit
@@ -93,6 +94,34 @@ private func darkGramCollectMessages(transaction: Transaction, peerId: PeerId) -
     return collected.sorted(by: { $0.index < $1.index })
 }
 
+// MARK: DarkGram
+//
+// A screenshot of a chat proves nothing -- it takes a minute to fake one. Hashing each message
+// and chaining the hashes makes an export checkable instead: changing, inserting or dropping
+// any message changes its own hash and every hash after it, so the single value at the bottom
+// stops matching. It does not prove the messages were ever sent -- nothing on the client can --
+// only that this file is the same one that left the device.
+//
+// The canonical form is spelled out in the export itself, so the chain can be recomputed with
+// any tool by someone who does not have this app and has no reason to trust it.
+
+private let darkGramFieldSeparator = "\u{1F}"
+
+private func darkGramCanonicalForm(_ message: Message) -> String {
+    var fields: [String] = []
+    fields.append("\(message.id.peerId.toInt64()):\(message.id.namespace):\(message.id.id)")
+    fields.append(String(message.timestamp))
+    fields.append(message.author.flatMap({ String($0.id.toInt64()) }) ?? "")
+    fields.append(message.flags.contains(.Incoming) ? "in" : "out")
+    fields.append(darkGramMediaDescription(message) ?? "")
+    fields.append(message.text)
+    return fields.joined(separator: darkGramFieldSeparator)
+}
+
+private func darkGramSHA256Hex(_ text: String) -> String {
+    return SHA256.hash(data: Data(text.utf8)).map({ String(format: "%02x", $0) }).joined()
+}
+
 private func darkGramRenderHTML(messages: [Message], chatTitle: String) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "dd.MM.yyyy HH:mm"
@@ -113,11 +142,17 @@ private func darkGramRenderHTML(messages: [Message], chatTitle: String) -> Strin
     .text { white-space: pre-wrap; word-wrap: break-word; margin-top: 2px; }
     .media { color: #7c8598; font-style: italic; }
     .deleted { color: #e06c75; font-size: 12px; margin-left: 6px; }
+    .hash { color: #4c5566; font-size: 11px; font-family: ui-monospace, Menlo, monospace; margin-left: 6px; }
+    .manifest { margin-top: 32px; padding-top: 16px; border-top: 1px solid #2a2f3d; color: #7c8598; font-size: 12px; }
+    .manifest code { color: #a78bff; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
     </style></head><body>
     <h1>\(darkGramEscapeHTML(chatTitle))</h1>
     <div class="meta">\(messages.count) messages · exported \(formatter.string(from: Date())) · DarkGram</div>
 
     """
+
+    // Seeded with zeroes so the first link has a defined predecessor.
+    var chain = String(repeating: "0", count: 64)
 
     for message in messages {
         let isOutgoing = !message.flags.contains(.Incoming)
@@ -131,7 +166,11 @@ private func darkGramRenderHTML(messages: [Message], chatTitle: String) -> Strin
 
         html += "<div class=\"msg\(isOutgoing ? " out" : "")\">"
         html += "<span class=\"who\">\(darkGramEscapeHTML(author))</span>"
+        let digest = darkGramSHA256Hex(darkGramCanonicalForm(message))
+        chain = darkGramSHA256Hex(chain + digest)
+
         html += "<span class=\"when\">\(timestamp)</span>"
+        html += "<span class=\"hash\">\(digest.prefix(16))</span>"
         if message.attributes.contains(where: { $0 is DarkGramDeletedMessageAttribute }) {
             html += "<span class=\"deleted\">deleted</span>"
         }
@@ -144,6 +183,15 @@ private func darkGramRenderHTML(messages: [Message], chatTitle: String) -> Strin
         html += "</div>\n"
     }
 
+    html += "<div class=\"manifest\">"
+    html += "<div>Integrity chain (SHA-256)</div>"
+    html += "<div><code>\(chain)</code></div>"
+    html += "<div style=\"margin-top:8px\">Each message is hashed over its fields joined by U+001F, in order: "
+    html += "peerId:namespace:id, unix timestamp, author id, direction (in/out), media description, text. "
+    html += "The chain starts at 64 zeroes and advances as SHA-256 of the previous chain value "
+    html += "concatenated with the message hash, both lowercase hex. Altering, inserting or "
+    html += "removing any message changes the value above.</div>"
+    html += "</div>\n"
     html += "</body></html>\n"
     return html
 }
