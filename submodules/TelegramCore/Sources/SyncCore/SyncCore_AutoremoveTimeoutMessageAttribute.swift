@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 
@@ -136,6 +137,31 @@ public extension Message {
         return timeout
     }
     
+    // MARK: DarkGram
+    /// Companion to `darkGramTreatAsProtectedMedia` for the view-once timeout, which the
+    /// capture checks test separately.
+    var darkGramIsViewOnceProtected: Bool {
+        if SGSimpleSettings.shared.bypassCopyProtection {
+            return false
+        }
+        return self.minAutoremoveOrClearTimeout == viewOnceTimeout
+    }
+
+    // MARK: DarkGram
+    /// What the interface should ask before deciding whether media may be saved, shared,
+    /// forwarded or screenshotted.
+    ///
+    /// `containsSecretMedia` itself keeps telling the truth on purpose: it also drives the
+    /// autoremove countdown, so overriding it there would start timers rather than stop them.
+    /// The bypass belongs only where the UI decides what may be done with media already on
+    /// screen -- the same split used for stories.
+    var darkGramTreatAsProtectedMedia: Bool {
+        if SGSimpleSettings.shared.bypassCopyProtection {
+            return false
+        }
+        return self.containsSecretMedia
+    }
+
     var containsSecretMedia: Bool {
         guard let timeout = self.minAutoremoveOrClearTimeout else {
             return false

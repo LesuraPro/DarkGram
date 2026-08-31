@@ -8,6 +8,21 @@ import MtProtoKit
 private typealias SignalKitTimer = SwiftSignalKit.Timer
 
 
+// MARK: DarkGram
+/// Re-asserts offline right after activity the server reads as coming online.
+///
+/// Sending a message flips the account online server-side the instant it lands, and the
+/// periodic heartbeat would not correct that until its next tick. Everyone watching saw the
+/// account online for that whole window -- and kept seeing it until their own client
+/// refreshed the chat, which is why it looked like the status was stuck rather than delayed.
+/// Firing the correction on the send's completion closes the window to one round trip.
+func darkGramReassertOffline(network: Network) {
+    guard SGSimpleSettings.shared.isGhostModeActive else {
+        return
+    }
+    let _ = network.request(Api.functions.account.updateStatus(offline: .boolTrue)).start()
+}
+
 private final class AccountPresenceManagerImpl {
     private let queue: Queue
     private let network: Network
@@ -57,7 +72,7 @@ private final class AccountPresenceManagerImpl {
         let darkGramGhost = SGSimpleSettings.shared.isGhostModeActive
         let request: Signal<Api.Bool, MTRpcError>
         if isOnline {
-            let timer = SignalKitTimer(timeout: 30.0, repeat: false, completion: { [weak self] in
+            let timer = SignalKitTimer(timeout: darkGramGhost ? 10.0 : 30.0, repeat: false, completion: { [weak self] in
                 guard let strongSelf = self else {
                     return
                 }

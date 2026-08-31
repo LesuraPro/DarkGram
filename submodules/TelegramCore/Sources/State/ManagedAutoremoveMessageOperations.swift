@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -82,6 +83,15 @@ func managedAutoremoveMessageOperations(network: Network, postbox: Postbox, isRe
                     Logger.shared.log("Autoremove", "Performing autoremove for \(entry.messageId), isRemove: \(isRemove)")
 
                     if let message = transaction.getMessage(entry.messageId) {
+                        // MARK: DarkGram - this is what actually makes one-time media vanish.
+                        // Suppressing the "viewed" report only stops the sender being told; the
+                        // local countdown still fired and swapped the media for expired content.
+                        // Dropping the scheduled attribute stops it for good, so the photo, video,
+                        // voice or round message stays an ordinary message in the history.
+                        if SGSimpleSettings.shared.keepOneTimeMedia, message.flags.contains(.Incoming) {
+                            transaction.clearTimestampBasedAttribute(id: entry.messageId, tag: tag)
+                            return
+                        }
                         if message.id.peerId.namespace == Namespaces.Peer.SecretChat || isRemove {
                             _internal_deleteMessages(transaction: transaction, mediaBox: postbox.mediaBox, ids: [entry.messageId])
                         } else {

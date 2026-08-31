@@ -1516,7 +1516,11 @@ public final class PendingMessageManager {
                     sendMessageRequest = network.request(Api.functions.messages.sendMultiMedia(flags: flags, peer: inputPeer, replyTo: replyTo, multiMedia: singleMedias, scheduleDate: scheduleTime, sendAs: sendAsInputPeer, quickReplyShortcut: quickReplyShortcut, effect: messageEffectId, allowPaidStars: allowPaidStars))
                 }
                 
+                // MARK: DarkGram - the send just marked us online; undo it immediately.
                 return sendMessageRequest
+                |> afterCompleted {
+                    darkGramReassertOffline(network: network)
+                }
                 |> deliverOn(queue)
                 |> mapToSignal { result -> Signal<Void, MTRpcError> in
                     if let strongSelf = self {
@@ -2198,7 +2202,11 @@ public final class PendingMessageManager {
                         sendMessageRequest = .fail(MTRpcError(errorCode: 400, errorDescription: "internal"))
                 }
                 
+                // MARK: DarkGram - the send just marked us online; undo it immediately.
                 return sendMessageRequest
+                |> afterCompleted {
+                    darkGramReassertOffline(network: network)
+                }
                 |> deliverOn(queue)
                 |> mapToSignal { result -> Signal<Void, MTRpcError> in
                     guard let strongSelf = self else {

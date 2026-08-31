@@ -754,7 +754,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                     }
                 }
             } else if let image = media as? TelegramMediaImage {
-                if !messages[0].containsSecretMedia {
+                if !messages[0].darkGramTreatAsProtectedMedia {
                     loadCopyMediaResource = largestImageRepresentation(image.representations)?.resource
                 }
             } else if let dice = media as? TelegramMediaDice {
@@ -1498,7 +1498,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             }
         }
         
-        if resourceAvailable, !message.containsSecretMedia && !isCopyProtected {
+        if resourceAvailable, !message.darkGramTreatAsProtectedMedia && !isCopyProtected {
             var mediaReference: AnyMediaReference?
             var isVideo = false
             for media in message.effectiveMedia {
@@ -2948,7 +2948,7 @@ func chatAvailableMessageActionsImpl(engine: TelegramEngine, accountPeerId: Engi
                     }
                 }
                 
-                if message.isCopyProtected() || message.containsSecretMedia {
+                if message.isCopyProtected() || message.darkGramTreatAsProtectedMedia {
                     isCopyProtected = true
                 }
                 
@@ -3064,7 +3064,7 @@ func chatAvailableMessageActionsImpl(engine: TelegramEngine, accountPeerId: Engi
                                 banPeer = nil
                             }
                         }
-                        if !message.containsSecretMedia && !isAction && !isShareProtected {
+                        if !message.darkGramTreatAsProtectedMedia && !isAction && !isShareProtected {
                             if message.id.peerId.namespace != Namespaces.Peer.SecretChat && !message.isCopyProtected() {
                                 if !(message.flags.isSending || message.flags.contains(.Failed)) {
                                     optionsMap[id]!.insert(.forward)
@@ -3080,7 +3080,7 @@ func chatAvailableMessageActionsImpl(engine: TelegramEngine, accountPeerId: Engi
                             }
                         }
                     } else if let group = peer as? TelegramGroup {
-                        if message.id.peerId.namespace != Namespaces.Peer.SecretChat && !message.containsSecretMedia {
+                        if message.id.peerId.namespace != Namespaces.Peer.SecretChat && !message.darkGramTreatAsProtectedMedia {
                             if !isAction && !message.isCopyProtected() && !isShareProtected {
                                 if !(message.flags.isSending || message.flags.contains(.Failed)) {
                                     optionsMap[id]!.insert(.forward)
@@ -3100,7 +3100,7 @@ func chatAvailableMessageActionsImpl(engine: TelegramEngine, accountPeerId: Engi
                             optionsMap[id]!.insert(.report)
                         }
                     } else if let user = peer as? TelegramUser {
-                        if !isScheduled && message.id.peerId.namespace != Namespaces.Peer.SecretChat && !message.containsSecretMedia && !isAction && !message.id.peerId.isReplies && !message.isCopyProtected() && !isShareProtected {
+                        if !isScheduled && message.id.peerId.namespace != Namespaces.Peer.SecretChat && !message.darkGramTreatAsProtectedMedia && !isAction && !message.id.peerId.isReplies && !message.isCopyProtected() && !isShareProtected {
                             if !(message.flags.isSending || message.flags.contains(.Failed)) {
                                 optionsMap[id]!.insert(.forward)
                             }

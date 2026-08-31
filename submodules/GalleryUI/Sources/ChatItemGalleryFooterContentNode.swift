@@ -865,7 +865,7 @@ final class ChatItemGalleryFooterContentNode: GalleryFooterContentNode, ASScroll
         }
         var canFullscreen = false
         var canDelete: Bool
-        var canShare = !message.containsSecretMedia && !Namespaces.Message.allNonRegular.contains(message.id.namespace) && message.adAttribute == nil
+        var canShare = !message.darkGramTreatAsProtectedMedia && !Namespaces.Message.allNonRegular.contains(message.id.namespace) && message.adAttribute == nil
                 
         var canEdit = false
         var isImage = false
