@@ -237,6 +237,8 @@ public class SGSimpleSettings {
         case warnSuspiciousNames
         case sessionWatchEnabled
         case knownSessionHashes
+        case trackNameChanges
+        case nameChangeLog
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -421,6 +423,8 @@ public class SGSimpleSettings {
         Keys.warnSuspiciousNames.rawValue: true,
         Keys.sessionWatchEnabled.rawValue: true,
         Keys.knownSessionHashes.rawValue: "",
+        Keys.trackNameChanges.rawValue: true,
+        Keys.nameChangeLog.rawValue: "",
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -801,6 +805,13 @@ public class SGSimpleSettings {
     /// Session hashes seen on the previous launch, comma separated.
     @UserDefault(key: Keys.knownSessionHashes.rawValue)
     public var knownSessionHashes: String
+
+    @UserDefault(key: Keys.trackNameChanges.rawValue)
+    public var trackNameChanges: Bool
+
+    /// JSON array of recent name and username changes.
+    @UserDefault(key: Keys.nameChangeLog.rawValue)
+    public var nameChangeLog: String
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)

@@ -398,3 +398,7 @@
 "Connection.Datacenter" = "Data centre";
 "Connection.Proxy.Active" = "Proxy carrying this connection";
 "Connection.Proxy.Direct" = "Direct connection, no proxy in use.";
+"Settings.Protection.NameChanges" = "Record name changes";
+"Settings.Protection.NameChanges.Notice" = "Notes when a contact or channel changes the name or username it presents. Shown in chat info. A sold or stolen account keeps its history and its place in the list while becoming someone else.";
+"ChatInfo.Renamed" = "Renamed";
+"ChatInfo.UsernameChanged" = "Username changed";

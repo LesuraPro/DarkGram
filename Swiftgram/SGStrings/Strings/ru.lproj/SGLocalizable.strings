@@ -393,3 +393,7 @@
 "Connection.Datacenter" = "Дата-центр";
 "Connection.Proxy.Active" = "Трафик идёт через прокси";
 "Connection.Proxy.Direct" = "Прямое соединение, прокси не используется.";
+"Settings.Protection.NameChanges" = "Записывать смену имён";
+"Settings.Protection.NameChanges.Notice" = "Отмечает, когда контакт или канал меняет имя или юзернейм. Видно в информации о чате. Проданный или угнанный аккаунт сохраняет переписку и место в списке, становясь другим человеком.";
+"ChatInfo.Renamed" = "Переименован";
+"ChatInfo.UsernameChanged" = "Смена юзернейма";

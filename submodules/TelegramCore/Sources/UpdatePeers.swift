@@ -299,6 +299,9 @@ public func updatePeersCustom(transaction: Transaction, peers: [Peer], update: (
     transaction.updatePeersInternal(peers, update: { previous, updated in
         let peerId = updated.id
         
+        // MARK: DarkGram - the only place holding both the old and the new profile.
+        darkGramRecordNameChange(previous: previous, updated: updated)
+        
         var updated = updated
         
         if let previous = previous as? TelegramUser, let updatedUser = updated as? TelegramUser {

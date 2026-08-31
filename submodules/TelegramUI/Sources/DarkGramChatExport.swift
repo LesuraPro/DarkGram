@@ -381,6 +381,23 @@ public func darkGramShowChatInfo(
                 lines.append(i18n("ChatInfo.Signals", lang) + ": " + signals.joined(separator: ", "))
             }
         }
+        // Renames are recorded for channels and groups too, not only users.
+        let renames = darkGramNameChanges(forPeerId: peerId.toInt64())
+        if !renames.isEmpty {
+            let renameFormatter = DateFormatter()
+            renameFormatter.dateFormat = "dd.MM.yyyy"
+            for change in renames.suffix(3) {
+                let when = renameFormatter.string(from: Date(timeIntervalSince1970: Double(change.timestamp)))
+                if change.previousName != change.currentName {
+                    lines.append(i18n("ChatInfo.Renamed", lang) + " " + when + ": " + change.previousName + " -> " + change.currentName)
+                }
+                if change.previousUsername != change.currentUsername {
+                    let before = change.previousUsername.isEmpty ? "-" : "@" + change.previousUsername
+                    let after = change.currentUsername.isEmpty ? "-" : "@" + change.currentUsername
+                    lines.append(i18n("ChatInfo.UsernameChanged", lang) + " " + when + ": " + before + " -> " + after)
+                }
+            }
+        }
         if let contactLine = contactLine {
             lines.append(contactLine)
         }
