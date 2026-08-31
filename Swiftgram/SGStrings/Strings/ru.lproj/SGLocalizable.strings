@@ -364,3 +364,10 @@
 "SessionWatch.Title" = "Новый сеанс";
 "SessionWatch.Text" = "В аккаунт вошёл сеанс, которого раньше не было:";
 "SessionWatch.Dismiss" = "Понятно";
+"ChatInfo.Registered" = "Возраст аккаунта";
+"ChatInfo.Registered.Recent" = "недавний (оценка недоступна)";
+"ChatInfo.Signals" = "Признаки";
+"ChatInfo.Signal.NoUsername" = "нет юзернейма";
+"ChatInfo.Signal.NoPhoto" = "нет фото";
+"ChatInfo.Signal.Scam" = "помечен как мошенник";
+"ChatInfo.Signal.Fake" = "помечен как подделка";

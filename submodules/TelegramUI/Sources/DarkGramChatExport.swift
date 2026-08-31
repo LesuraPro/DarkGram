@@ -259,6 +259,59 @@ public func darkGramExportChat(
 /// Chat summary: how the contact relationship stands, and what the cached history looks like.
 /// Reuses the export walker, so the numbers describe exactly what the device holds -- the same
 /// scope the export writes out, which keeps the two features honest with each other.
+// MARK: DarkGram
+//
+// Telegram hands out user ids in ascending order, so an id places an account on a timeline.
+// Anchors below are (id, year, month) pairs; anything between two of them is interpolated.
+//
+// This is an estimate and is labelled as one. Allocation has not been perfectly monotonic --
+// imported accounts and the 2022 move to 64-bit ids both disturb it -- so the answer is given
+// as a period, never a date, and is withheld entirely above the last anchor, where the only
+// honest thing to say is "recent".
+private let darkGramIdAnchors: [(id: Int64, year: Int, month: Int)] = [
+    (44634663, 2015, 1),
+    (101260938, 2016, 1),
+    (164788718, 2017, 1),
+    (285253072, 2018, 1),
+    (543093692, 2019, 1),
+    (925078845, 2020, 1),
+    (1524312228, 2021, 1),
+    (2166527034, 2022, 1)
+]
+
+/// An approximate registration period, or nil when the id is outside the anchored range.
+private func darkGramAccountPeriod(userId: Int64) -> String? {
+    guard userId > 0 else {
+        return nil
+    }
+    guard let first = darkGramIdAnchors.first, let last = darkGramIdAnchors.last else {
+        return nil
+    }
+    if userId < first.id {
+        return "< \(first.year)"
+    }
+    if userId > last.id {
+        return nil
+    }
+    for index in 1 ..< darkGramIdAnchors.count {
+        let upper = darkGramIdAnchors[index]
+        if userId > upper.id {
+            continue
+        }
+        let lower = darkGramIdAnchors[index - 1]
+        let span = Double(upper.id - lower.id)
+        guard span > 0 else {
+            return String(lower.year)
+        }
+        let progress = Double(userId - lower.id) / span
+        let lowerMonths = lower.year * 12 + (lower.month - 1)
+        let upperMonths = upper.year * 12 + (upper.month - 1)
+        let months = lowerMonths + Int((Double(upperMonths - lowerMonths) * progress).rounded())
+        return String(format: "%04d-%02d", months / 12, months % 12 + 1)
+    }
+    return nil
+}
+
 public func darkGramShowChatInfo(
     controllerInteraction: ChatControllerInteraction,
     chatPresentationInterfaceState: ChatPresentationInterfaceState,
@@ -304,6 +357,30 @@ public func darkGramShowChatInfo(
         formatter.dateFormat = "dd.MM.yyyy"
 
         var lines: [String] = []
+        // MARK: DarkGram - what is known about who this is, before the message counts.
+        if let user = peer as? TelegramUser {
+            if let period = darkGramAccountPeriod(userId: user.id.id._internalGetInt64Value()) {
+                lines.append(i18n("ChatInfo.Registered", lang) + ": ~" + period)
+            } else {
+                lines.append(i18n("ChatInfo.Registered", lang) + ": " + i18n("ChatInfo.Registered.Recent", lang))
+            }
+            var signals: [String] = []
+            if user.username == nil || user.username?.isEmpty == true {
+                signals.append(i18n("ChatInfo.Signal.NoUsername", lang))
+            }
+            if user.photo.isEmpty {
+                signals.append(i18n("ChatInfo.Signal.NoPhoto", lang))
+            }
+            if user.flags.contains(.isScam) {
+                signals.append(i18n("ChatInfo.Signal.Scam", lang))
+            }
+            if user.flags.contains(.isFake) {
+                signals.append(i18n("ChatInfo.Signal.Fake", lang))
+            }
+            if !signals.isEmpty {
+                lines.append(i18n("ChatInfo.Signals", lang) + ": " + signals.joined(separator: ", "))
+            }
+        }
         if let contactLine = contactLine {
             lines.append(contactLine)
         }

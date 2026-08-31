@@ -369,3 +369,10 @@
 "SessionWatch.Title" = "New session";
 "SessionWatch.Text" = "A session signed in that was not there before:";
 "SessionWatch.Dismiss" = "OK";
+"ChatInfo.Registered" = "Account age";
+"ChatInfo.Registered.Recent" = "recent (estimate unavailable)";
+"ChatInfo.Signals" = "Signals";
+"ChatInfo.Signal.NoUsername" = "no username";
+"ChatInfo.Signal.NoPhoto" = "no photo";
+"ChatInfo.Signal.Scam" = "reported as scam";
+"ChatInfo.Signal.Fake" = "reported as fake";
