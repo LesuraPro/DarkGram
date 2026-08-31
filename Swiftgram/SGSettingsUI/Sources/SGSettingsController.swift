@@ -34,8 +34,6 @@ private enum SGControllerSection: Int32, SGItemListSection {
     case protection
     case backup
     case diagnostics
-    case privacyAudit
-    case connectionInfo
     case tabs
     case folders
     case chatList
@@ -150,6 +148,8 @@ private enum SGSliderSetting: String {
 
 private enum SGDisclosureLink: String {
     case moreFeatures
+    case privacyAudit
+    case connectionInfo
     case exportSettings
     case importSettings
     case diagnostics

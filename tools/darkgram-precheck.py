@@ -114,11 +114,51 @@ def check_orphans(problems):
                 )
 
 
+SETTINGS_UI = os.path.join(REPO, "Swiftgram", "SGSettingsUI", "Sources", "SGSettingsController.swift")
+
+
+def enum_cases(text, header):
+    """Cases of one enum, stopping at its closing brace."""
+    block = re.search(re.escape(header) + r"(.*?)\n\}", text, re.S)
+    if not block:
+        return None
+    return set(re.findall(r"^\s*case\s+(\w+)", block.group(1), re.M))
+
+
+def check_settings_ui(problems):
+    """Every settings row must name a case that exists in the enum its field expects.
+
+    Getting this wrong costs a whole build to find. The compiler reports it as "type
+    'Sequence' has no member ..." -- the append overload falls back to append(contentsOf:)
+    once the argument fails to type-check -- which points nowhere near the mistake. It
+    happened by inserting a case after the first "case diagnostics" in the file, which
+    belongs to the section enum rather than the link enum.
+    """
+    if not os.path.exists(SETTINGS_UI):
+        return
+    text = read(SETTINGS_UI)
+
+    for header, field in (
+        ("private enum SGDisclosureLink: String {", "link"),
+        ("private enum SGControllerSection: Int32, SGItemListSection {", "section"),
+    ):
+        cases = enum_cases(text, header)
+        if cases is None:
+            problems.append("could not locate enum: " + header)
+            continue
+        for used in sorted(set(re.findall(field + r": \.(\w+)", text))):
+            if used not in cases:
+                problems.append(
+                    "settings row uses %s: .%s but that case is in another enum" % (field, used)
+                )
+
+
 def main():
     problems = []
     check_imports(problems)
     check_settings(problems)
     check_orphans(problems)
+    check_settings_ui(problems)
 
     if not problems:
         print("precheck: clean")
