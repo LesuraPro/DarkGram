@@ -79,6 +79,7 @@ private enum SGBoolSetting: String {
     case warnSuspiciousNames
     case sessionWatchEnabled
     case trackNameChanges
+    case stripLinkTracking
     case confirmSendToGroup
     case disableSwipeToRecordStory
     case disableDeleteChatSwipeOption
@@ -237,6 +238,8 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.SessionWatch.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .trackNameChanges, value: SGSimpleSettings.shared.trackNameChanges, text: i18n("Settings.Protection.NameChanges", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.NameChanges.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .stripLinkTracking, value: SGSimpleSettings.shared.stripLinkTracking, text: i18n("Settings.Protection.LinkTracking", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.LinkTracking.Notice", lang)))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.ConfirmSend.Notice", lang)))
@@ -538,6 +541,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.sessionWatchEnabled = value
         case .trackNameChanges:
             SGSimpleSettings.shared.trackNameChanges = value
+        case .stripLinkTracking:
+            SGSimpleSettings.shared.stripLinkTracking = value
         case .confirmSendToGroup:
             SGSimpleSettings.shared.confirmSendToGroup = value
         case .disableSwipeToRecordStory:

@@ -86,7 +86,8 @@ public class SGSimpleSettings {
             { let _ = self.keywordAlertSound },
             { let _ = self.preferLocalSearch },
             { let _ = self.keepOneTimeMedia },
-            { let _ = self.warnSuspiciousNames }
+            { let _ = self.warnSuspiciousNames },
+            { let _ = self.stripLinkTracking }
         ]
 
         tasks.forEach { task in
@@ -239,6 +240,7 @@ public class SGSimpleSettings {
         case knownSessionHashes
         case trackNameChanges
         case nameChangeLog
+        case stripLinkTracking
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -425,6 +427,7 @@ public class SGSimpleSettings {
         Keys.knownSessionHashes.rawValue: "",
         Keys.trackNameChanges.rawValue: true,
         Keys.nameChangeLog.rawValue: "",
+        Keys.stripLinkTracking.rawValue: true,
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -812,6 +815,9 @@ public class SGSimpleSettings {
     /// JSON array of recent name and username changes.
     @UserDefault(key: Keys.nameChangeLog.rawValue)
     public var nameChangeLog: String
+
+    @UserDefault(key: Keys.stripLinkTracking.rawValue)
+    public var stripLinkTracking: Bool
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)

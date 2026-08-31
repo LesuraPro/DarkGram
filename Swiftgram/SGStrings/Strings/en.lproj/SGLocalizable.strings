@@ -402,3 +402,12 @@
 "Settings.Protection.NameChanges.Notice" = "Notes when a contact or channel changes the name or username it presents. Shown in chat info. A sold or stolen account keeps its history and its place in the list while becoming someone else.";
 "ChatInfo.Renamed" = "Renamed";
 "ChatInfo.UsernameChanged" = "Username changed";
+"Settings.Protection.LinkTracking" = "Strip tracking from links";
+"Settings.Protection.LinkTracking.Notice" = "Removes identifying query parameters before a link is opened. They survive copying and forwarding, so a shared link can otherwise carry the identity of whoever received it first to everyone who opens it.";
+"DangerousFile.Title" = "This file is not a document";
+"DangerousFile.Profile" = "This is a configuration profile. Installing one can add a root certificate and a proxy, letting whoever issued it read your encrypted traffic. Open it only if you know exactly who sent it and why.";
+"DangerousFile.Shortcut" = "This is a shortcut. It runs actions on your device rather than displaying content.";
+"DangerousFile.Executable" = "This is a program. It is inert on iOS, but it will run if you open it on a computer.";
+"DangerousFile.Script" = "This is a script. It is inert on iOS, but it will run if you open it on a computer.";
+"DangerousFile.Open" = "Open anyway";
+"DangerousFile.Cancel" = "Cancel";

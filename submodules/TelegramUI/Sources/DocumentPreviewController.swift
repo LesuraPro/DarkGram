@@ -6,6 +6,7 @@ import TelegramCore
 import QuickLook
 import Display
 import TelegramPresentationData
+import SGStrings
 
 private final class DocumentPreviewItem: NSObject, QLPreviewItem {
     private let url: URL
@@ -185,7 +186,27 @@ final class CompactDocumentPreviewController: QLPreviewController, QLPreviewCont
     }
 }
 
+// MARK: DarkGram
+// Every document open in the app funnels through here, so one check covers all of them.
 func presentDocumentPreviewController(rootController: UIViewController, theme: PresentationTheme, strings: PresentationStrings, postbox: Postbox, file: TelegramMediaFile, canShare: Bool) {
+    if let kind = darkGramDangerousFileKind(file.fileName) {
+        let lang = strings.baseLanguageCode
+        let alert = UIAlertController(
+            title: i18n("DangerousFile.Title", lang),
+            message: i18n("DangerousFile." + kind, lang),
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: i18n("DangerousFile.Cancel", lang), style: .cancel))
+        alert.addAction(UIAlertAction(title: i18n("DangerousFile.Open", lang), style: .destructive) { _ in
+            darkGramPresentDocumentPreviewController(rootController: rootController, theme: theme, strings: strings, postbox: postbox, file: file, canShare: canShare)
+        })
+        rootController.present(alert, animated: true)
+        return
+    }
+    darkGramPresentDocumentPreviewController(rootController: rootController, theme: theme, strings: strings, postbox: postbox, file: file, canShare: canShare)
+}
+
+private func darkGramPresentDocumentPreviewController(rootController: UIViewController, theme: PresentationTheme, strings: PresentationStrings, postbox: Postbox, file: TelegramMediaFile, canShare: Bool) {
     let navigationBar = UINavigationBar.appearance(whenContainedInInstancesOf: [QLPreviewController.self])
     navigationBar.barTintColor = theme.rootController.navigationBar.opaqueBackgroundColor
     navigationBar.setBackgroundImage(generateImage(CGSize(width: 1.0, height: 1.0), rotatedContext: { size, context in

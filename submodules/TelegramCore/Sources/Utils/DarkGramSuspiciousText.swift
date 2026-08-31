@@ -1,4 +1,5 @@
 import Foundation
+import SGSimpleSettings
 
 // MARK: DarkGram
 //
@@ -134,4 +135,74 @@ public func darkGramSanitizedName(_ name: String) -> String {
         result.append(scalar)
     }
     return String(result)
+}
+
+// MARK: DarkGram
+//
+// Query parameters that exist to identify the person following the link rather than to select
+// what is shown. They survive being pasted and forwarded, so a link shared in a chat can carry
+// the identity of whoever first received it to everyone who opens it afterwards.
+//
+// Only exact, well-known names are removed, and only from http(s) URLs. A guess here silently
+// breaks links, which is worse than the tracking.
+private let darkGramTrackingParameters: Set<String> = [
+    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
+    "fbclid", "gclid", "dclid", "yclid", "msclkid", "twclid",
+    "igshid", "mc_eid", "_openstat", "ref_src", "ref_url"
+]
+
+public func darkGramStripTrackingParameters(_ url: String) -> String {
+    guard SGSimpleSettings.shared.stripLinkTracking else {
+        return url
+    }
+    guard var components = URLComponents(string: url) else {
+        return url
+    }
+    let scheme = components.scheme?.lowercased()
+    guard scheme == "http" || scheme == "https" else {
+        return url
+    }
+    guard let items = components.queryItems, !items.isEmpty else {
+        return url
+    }
+    let kept = items.filter { !darkGramTrackingParameters.contains($0.name.lowercased()) }
+    guard kept.count != items.count else {
+        return url
+    }
+    components.queryItems = kept.isEmpty ? nil : kept
+    return components.string ?? url
+}
+
+// MARK: DarkGram
+//
+// File kinds that do something other than open when opened.
+//
+// The one that matters most on iOS is .mobileconfig: a configuration profile can install a root
+// certificate and a proxy, which turns every HTTPS connection on the device into something the
+// issuer can read. It arrives looking like a document.
+//
+// The rest matter because this is a cross-platform messenger. A file received here is routinely
+// opened on a desktop later, where an executable is an executable.
+private let darkGramDangerousExtensions: [String: String] = [
+    "mobileconfig": "Profile",
+    "shortcut": "Shortcut",
+    "wfshortcut": "Shortcut",
+    "exe": "Executable", "msi": "Executable", "scr": "Executable", "com": "Executable",
+    "pif": "Executable", "apk": "Executable", "dmg": "Executable", "pkg": "Executable",
+    "bat": "Script", "cmd": "Script", "vbs": "Script", "ps1": "Script",
+    "jar": "Script", "sh": "Script"
+]
+
+/// A key naming why this file is worth a second look, or nil when it is an ordinary document.
+public func darkGramDangerousFileKind(_ fileName: String?) -> String? {
+    guard SGSimpleSettings.shared.warnSuspiciousNames, let fileName = fileName else {
+        return nil
+    }
+    // Judge the real name: an override could otherwise hide the extension being checked.
+    let sanitized = darkGramSanitizedName(fileName)
+    guard let dot = sanitized.lastIndex(of: ".") else {
+        return nil
+    }
+    let ext = String(sanitized[sanitized.index(after: dot)...]).lowercased()
+    return darkGramDangerousExtensions[ext]
 }

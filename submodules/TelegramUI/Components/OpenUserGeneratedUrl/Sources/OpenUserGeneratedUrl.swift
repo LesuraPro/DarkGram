@@ -31,6 +31,10 @@ public func openUserGeneratedUrl(
 ) -> Disposable {
     var concealed = concealed
 
+    // MARK: DarkGram - drop identifying query parameters before the link is resolved,
+    // shown in the confirmation, or opened. One seam covers all three.
+    let url = darkGramStripTrackingParameters(url)
+
     var presentationData = context.sharedContext.currentPresentationData.with { $0 }
     if forceDark {
         presentationData = presentationData.withUpdated(theme: defaultDarkColorPresentationTheme)
