@@ -364,3 +364,8 @@
 "Settings.Gestures.Action.copy" = "Copy text";
 "Settings.Protection.SuspiciousNames" = "Expose disguised file names";
 "Settings.Protection.SuspiciousNames.Notice" = "Marks file names that use invisible characters to reverse how they read, or that mix alphabets so one name can imitate another. The real name is shown instead of the disguised one.";
+"Settings.Protection.SessionWatch" = "Warn about new sessions";
+"Settings.Protection.SessionWatch.Notice" = "Checks active sessions on launch and tells you when one appears that was not there before. The first run only records what already exists.";
+"SessionWatch.Title" = "New session";
+"SessionWatch.Text" = "A session signed in that was not there before:";
+"SessionWatch.Dismiss" = "OK";

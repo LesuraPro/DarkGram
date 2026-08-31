@@ -75,6 +75,7 @@ private enum SGBoolSetting: String {
     case keepEditHistory
     case bypassCopyProtection
     case warnSuspiciousNames
+    case sessionWatchEnabled
     case confirmSendToGroup
     case disableSwipeToRecordStory
     case disableDeleteChatSwipeOption
@@ -229,6 +230,8 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.toggle(id: id.count, section: .protection, settingName: .bypassCopyProtection, value: SGSimpleSettings.shared.bypassCopyProtection, text: i18n("Settings.History.BypassCopyProtection", lang), enabled: true))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .warnSuspiciousNames, value: SGSimpleSettings.shared.warnSuspiciousNames, text: i18n("Settings.Protection.SuspiciousNames", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.SuspiciousNames.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .sessionWatchEnabled, value: SGSimpleSettings.shared.sessionWatchEnabled, text: i18n("Settings.Protection.SessionWatch", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.SessionWatch.Notice", lang)))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.ConfirmSend.Notice", lang)))
@@ -524,6 +527,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.bypassCopyProtection = value
         case .warnSuspiciousNames:
             SGSimpleSettings.shared.warnSuspiciousNames = value
+        case .sessionWatchEnabled:
+            SGSimpleSettings.shared.sessionWatchEnabled = value
         case .confirmSendToGroup:
             SGSimpleSettings.shared.confirmSendToGroup = value
         case .disableSwipeToRecordStory:

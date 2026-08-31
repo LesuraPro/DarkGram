@@ -235,6 +235,8 @@ public class SGSimpleSettings {
         case preferLocalSearch
         case keepOneTimeMedia
         case warnSuspiciousNames
+        case sessionWatchEnabled
+        case knownSessionHashes
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -417,6 +419,8 @@ public class SGSimpleSettings {
         Keys.keepOneTimeMedia.rawValue: false,
         // Protective and silent when nothing is wrong, so it defaults on.
         Keys.warnSuspiciousNames.rawValue: true,
+        Keys.sessionWatchEnabled.rawValue: true,
+        Keys.knownSessionHashes.rawValue: "",
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -790,6 +794,13 @@ public class SGSimpleSettings {
     // MARK: DarkGram
     @UserDefault(key: Keys.warnSuspiciousNames.rawValue)
     public var warnSuspiciousNames: Bool
+
+    @UserDefault(key: Keys.sessionWatchEnabled.rawValue)
+    public var sessionWatchEnabled: Bool
+
+    /// Session hashes seen on the previous launch, comma separated.
+    @UserDefault(key: Keys.knownSessionHashes.rawValue)
+    public var knownSessionHashes: String
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)
