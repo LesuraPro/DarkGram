@@ -729,7 +729,16 @@ public final class ChatMessageInteractiveFileNode: ASDisplayNode {
                 if let candidateTitleString = candidateTitleString {
                     titleString = candidateTitleString
                 } else if !isVoice {
-                    titleString = NSAttributedString(string: arguments.file.fileName ?? "File", font: titleFont, textColor: arguments.customTintColor ?? messageTheme.fileTitleColor)
+                    // MARK: DarkGram - draw the name the system will actually act on.
+                    // A bidirectional override makes a name ending "fdp.exe" render as
+                    // "exe.pdf": the reader sees a document, the file is an executable.
+                    // Stripping the override restores the true order, and the marker says the
+                    // name was built to deceive rather than merely looking unusual.
+                    var darkGramFileName = arguments.file.fileName ?? "File"
+                    if SGSimpleSettings.shared.warnSuspiciousNames, darkGramInspectName(darkGramFileName).isSuspicious {
+                        darkGramFileName = "⚠️ " + darkGramSanitizedName(darkGramFileName)
+                    }
+                    titleString = NSAttributedString(string: darkGramFileName, font: titleFont, textColor: arguments.customTintColor ?? messageTheme.fileTitleColor)
                 }
                 
                 if let candidateDescriptionString = candidateDescriptionString {

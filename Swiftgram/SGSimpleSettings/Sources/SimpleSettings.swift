@@ -85,7 +85,8 @@ public class SGSimpleSettings {
             { let _ = self.perChatGhostPeerIds },
             { let _ = self.keywordAlertSound },
             { let _ = self.preferLocalSearch },
-            { let _ = self.keepOneTimeMedia }
+            { let _ = self.keepOneTimeMedia },
+            { let _ = self.warnSuspiciousNames }
         ]
 
         tasks.forEach { task in
@@ -233,6 +234,7 @@ public class SGSimpleSettings {
         case keywordAlertSound
         case preferLocalSearch
         case keepOneTimeMedia
+        case warnSuspiciousNames
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -413,6 +415,8 @@ public class SGSimpleSettings {
         Keys.keywordAlertSound.rawValue: true,
         Keys.preferLocalSearch.rawValue: true,
         Keys.keepOneTimeMedia.rawValue: false,
+        // Protective and silent when nothing is wrong, so it defaults on.
+        Keys.warnSuspiciousNames.rawValue: true,
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -782,6 +786,10 @@ public class SGSimpleSettings {
     /// MARK: DarkGram - never consume one-time media, so it stays an ordinary message.
     @UserDefault(key: Keys.keepOneTimeMedia.rawValue)
     public var keepOneTimeMedia: Bool
+
+    // MARK: DarkGram
+    @UserDefault(key: Keys.warnSuspiciousNames.rawValue)
+    public var warnSuspiciousNames: Bool
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)

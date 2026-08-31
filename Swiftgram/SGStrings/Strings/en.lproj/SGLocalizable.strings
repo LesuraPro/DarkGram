@@ -362,3 +362,5 @@
 "Settings.Gestures.Action.edit" = "Edit";
 "Settings.Gestures.Action.reply" = "Reply";
 "Settings.Gestures.Action.copy" = "Copy text";
+"Settings.Protection.SuspiciousNames" = "Expose disguised file names";
+"Settings.Protection.SuspiciousNames.Notice" = "Marks file names that use invisible characters to reverse how they read, or that mix alphabets so one name can imitate another. The real name is shown instead of the disguised one.";

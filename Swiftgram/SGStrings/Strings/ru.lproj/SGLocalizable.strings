@@ -357,3 +357,5 @@
 "Settings.Gestures.Action.edit" = "Редактировать";
 "Settings.Gestures.Action.reply" = "Ответить";
 "Settings.Gestures.Action.copy" = "Скопировать текст";
+"Settings.Protection.SuspiciousNames" = "Раскрывать поддельные имена файлов";
+"Settings.Protection.SuspiciousNames.Notice" = "Помечает имена, где невидимые символы разворачивают текст задом наперед или где смешаны алфавиты, чтобы одно имя выглядело как другое. Показывается настоящее имя вместо замаскированного.";
