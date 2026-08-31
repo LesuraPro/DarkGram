@@ -1564,7 +1564,16 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                         switch entry {
                         case .all:
                             id = Int32.min
-                            title = HorizontalTabsComponent.Tab.Title(text: sgUseShortAllChatsTitle(true) ? self.presentationData.strings.ChatList_Tabs_All : self.presentationData.strings.ChatList_Tabs_AllChats, entities: [], enableAnimations: false)
+                            // MARK: DarkGram - the ghost marker lives on the All tab rather than
+                            // the navigation title: that title also carries premium custom emoji
+                            // and is overlaid by story thumbnails while scrolling, so a marker
+                            // there is routinely invisible. This row is plain text and always on
+                            // screen.
+                            var darkGramAllTitle = sgUseShortAllChatsTitle(true) ? self.presentationData.strings.ChatList_Tabs_All : self.presentationData.strings.ChatList_Tabs_AllChats
+                            if SGSimpleSettings.shared.isGhostModeActive {
+                                darkGramAllTitle = "👻 " + darkGramAllTitle
+                            }
+                            title = HorizontalTabsComponent.Tab.Title(text: darkGramAllTitle, entities: [], enableAnimations: false)
                             isMainTab = true
                         case let .filter(idValue, text, unread):
                             id = AnyHashable(idValue)

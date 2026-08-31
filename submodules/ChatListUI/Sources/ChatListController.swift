@@ -7252,14 +7252,7 @@ private final class ChatListLocationContext {
                     animated = true
                 }
             }
-            // MARK: DarkGram - ghost mode is easy to leave on by accident, and the cost of not
-            // noticing is that everything stays hidden from everyone. Mark it where the eye
-            // already goes: the chat list title, on every launch.
-            var darkGramTitle = title
-            if SGSimpleSettings.shared.isGhostModeActive {
-                darkGramTitle = "👻 " + title
-            }
-            titleContent = NetworkStatusTitle(text: darkGramTitle, activity: false, hasProxy: false, connectsViaProxy: false, isPasscodeSet: false, isManuallyLocked: false, peerStatus: peerStatus)
+            titleContent = NetworkStatusTitle(text: title, activity: false, hasProxy: false, connectsViaProxy: false, isPasscodeSet: false, isManuallyLocked: false, peerStatus: peerStatus)
             let _ = animated
         } else if isReorderingTabs {
             if case .chatList(.root) = self.location {
