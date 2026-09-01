@@ -143,36 +143,17 @@ func formattedConfirmationCode(_ code: Int) -> String {
 }
 
 // MARK: DarkGram
-/// Query parameters that exist only to identify the person following the link.
-/// Everything with an `utm_` prefix goes, plus these click identifiers.
-private let darkGramTrackingParameterNames: Set<String> = [
-    "fbclid", "gclid", "dclid", "gbraid", "wbraid", "msclkid",
-    "yclid", "twclid", "ttclid", "igshid", "mc_eid", "mc_cid",
-    "_openstat", "vero_id", "wickedid", "oly_enc_id", "oly_anon_id",
-]
-
 /// Strips advertising and analytics parameters from http(s) links.
 ///
-/// Anything that is not http(s), carries no query string, or carries no tracking
-/// parameter is returned untouched — so `mailto:`, `tg://` and ordinary links keep
-/// byte-identical behaviour and only genuinely-tracked URLs are rewritten.
+/// The parameter list and the rules live in TelegramCore, because this was written twice --
+/// once here and once for the link-opening confirmation -- and the two copies drifted: only
+/// one of them honoured the setting, so turning tracker removal off left it half on.
 private func darkGramStrippingTracking(from url: URL) -> URL {
-    guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+    let stripped = darkGramStripTrackingParameters(url.absoluteString)
+    guard stripped != url.absoluteString, let updated = URL(string: stripped) else {
         return url
     }
-    guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-          let items = components.queryItems, !items.isEmpty else {
-        return url
-    }
-    let kept = items.filter { item in
-        let name = item.name.lowercased()
-        return !name.hasPrefix("utm_") && !darkGramTrackingParameterNames.contains(name)
-    }
-    if kept.count == items.count {
-        return url
-    }
-    components.queryItems = kept.isEmpty ? nil : kept
-    return components.url ?? url
+    return updated
 }
 
 private func canonicalExternalUrl(from url: String) -> URL? {

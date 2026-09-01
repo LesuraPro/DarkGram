@@ -146,10 +146,17 @@ public func darkGramSanitizedName(_ name: String) -> String {
 // Only exact, well-known names are removed, and only from http(s) URLs. A guess here silently
 // breaks links, which is worse than the tracking.
 private let darkGramTrackingParameters: Set<String> = [
-    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
-    "fbclid", "gclid", "dclid", "yclid", "msclkid", "twclid",
-    "igshid", "mc_eid", "_openstat", "ref_src", "ref_url"
+    "fbclid", "gclid", "dclid", "gbraid", "wbraid", "msclkid",
+    "yclid", "twclid", "ttclid", "igshid", "mc_eid", "mc_cid",
+    "_openstat", "vero_id", "wickedid", "oly_enc_id", "oly_anon_id",
+    "ref_src", "ref_url"
 ]
+
+private func darkGramIsTrackingParameter(_ name: String) -> Bool {
+    let lowered = name.lowercased()
+    // Every utm_* is analytics by construction, so match the prefix rather than listing them.
+    return lowered.hasPrefix("utm_") || darkGramTrackingParameters.contains(lowered)
+}
 
 public func darkGramStripTrackingParameters(_ url: String) -> String {
     guard SGSimpleSettings.shared.stripLinkTracking else {
@@ -165,7 +172,7 @@ public func darkGramStripTrackingParameters(_ url: String) -> String {
     guard let items = components.queryItems, !items.isEmpty else {
         return url
     }
-    let kept = items.filter { !darkGramTrackingParameters.contains($0.name.lowercased()) }
+    let kept = items.filter { !darkGramIsTrackingParameter($0.name) }
     guard kept.count != items.count else {
         return url
     }

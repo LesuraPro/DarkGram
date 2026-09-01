@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -110,6 +111,12 @@ func managedSynchronizeConsumeMessageContentOperations(postbox: Postbox, network
 }
 
 private func synchronizeConsumeMessageContents(transaction: Transaction, network: Network, stateManager: AccountStateManager, peerId: PeerId, operation: SynchronizeConsumeMessageContentsOperation) -> Signal<Void, NoError> {
+    // MARK: DarkGram - reporting that content was viewed both tells the sender and marks the
+    // account active, which is exactly what ghost mode exists to prevent. Completing rather
+    // than failing so the operation leaves the queue instead of retrying forever.
+    if SGSimpleSettings.shared.isGhostModeActive(forPeerId: peerId.toInt64()) {
+        return .complete()
+    }
     if peerId.namespace == Namespaces.Peer.CloudUser || peerId.namespace == Namespaces.Peer.CloudGroup {
         return network.request(Api.functions.messages.readMessageContents(id: operation.messageIds.map { $0.id }))
         |> map(Optional.init)

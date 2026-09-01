@@ -4446,7 +4446,11 @@ func replayFinalState(
                 // for ordinary conversations. Intercepting only the other branch meant the
                 // keep-deleted setting silently did nothing exactly where it is used most.
                 var globalIdsToDelete = ids
-                if SGSimpleSettings.shared.keepDeletedMessages {
+                // MARK: DarkGram
+                // One-time media is removed by the server when its timer expires, not by our
+                // local autoremove, so keeping it has to survive this path too. Otherwise the
+                // setting only defends against the local timer and the message still vanishes.
+                if SGSimpleSettings.shared.keepDeletedMessages || SGSimpleSettings.shared.keepOneTimeMedia {
                     let deletedAt = Int32(CFAbsoluteTimeGetCurrent() + NSTimeIntervalSince1970)
                     var keptGlobalIds = Set<Int32>()
                     for globalId in ids {
@@ -4455,6 +4459,10 @@ func replayFinalState(
                         guard let messageId = transaction.messageIdsForGlobalIds([globalId]).first,
                               let existingMessage = transaction.getMessage(messageId),
                               existingMessage.flags.contains(.Incoming) else {
+                            continue
+                        }
+                        guard SGSimpleSettings.shared.keepDeletedMessages
+                            || existingMessage.containsSecretMedia else {
                             continue
                         }
                         keptGlobalIds.insert(globalId)
@@ -4488,11 +4496,19 @@ func replayFinalState(
                 // Messages that stay are excluded from deletedMessageIds so the UI does not
                 // animate them away.
                 var idsToDelete = ids
-                if SGSimpleSettings.shared.keepDeletedMessages {
+                // MARK: DarkGram
+                // One-time media is removed by the server when its timer expires, not by our
+                // local autoremove, so keeping it has to survive this path too. Otherwise the
+                // setting only defends against the local timer and the message still vanishes.
+                if SGSimpleSettings.shared.keepDeletedMessages || SGSimpleSettings.shared.keepOneTimeMedia {
                     let deletedAt = Int32(CFAbsoluteTimeGetCurrent() + NSTimeIntervalSince1970)
                     var keptIds = Set<MessageId>()
                     for id in ids {
                         guard let existingMessage = transaction.getMessage(id), existingMessage.flags.contains(.Incoming) else {
+                            continue
+                        }
+                        guard SGSimpleSettings.shared.keepDeletedMessages
+                            || existingMessage.containsSecretMedia else {
                             continue
                         }
                         keptIds.insert(id)

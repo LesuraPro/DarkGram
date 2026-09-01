@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -252,6 +253,12 @@ func managedReadReactionOrPollVoteActions(postbox: Postbox, network: Network, st
 }
 
 private func synchronizeConsumeMessageContents(transaction: Transaction, postbox: Postbox, network: Network, stateManager: AccountStateManager, id: MessageId) -> Signal<Void, NoError> {
+    // MARK: DarkGram - reporting that content was viewed both tells the sender and marks the
+    // account active, which is exactly what ghost mode exists to prevent. Completing rather
+    // than failing so the operation leaves the queue instead of retrying forever.
+    if SGSimpleSettings.shared.isGhostModeActive(forPeerId: id.peerId.toInt64()) {
+        return .complete()
+    }
     if id.peerId.namespace == Namespaces.Peer.CloudUser || id.peerId.namespace == Namespaces.Peer.CloudGroup {
         return network.request(Api.functions.messages.readMessageContents(id: [id.id]))
             |> map(Optional.init)
@@ -321,6 +328,12 @@ private func synchronizeConsumeMessageContents(transaction: Transaction, postbox
 }
 
 private func synchronizeReadMessageReactionsOrPollVotes(transaction: Transaction, postbox: Postbox, network: Network, stateManager: AccountStateManager, id: MessageId) -> Signal<Void, NoError> {
+    // MARK: DarkGram - reporting that content was viewed both tells the sender and marks the
+    // account active, which is exactly what ghost mode exists to prevent. Completing rather
+    // than failing so the operation leaves the queue instead of retrying forever.
+    if SGSimpleSettings.shared.isGhostModeActive(forPeerId: id.peerId.toInt64()) {
+        return .complete()
+    }
     if id.peerId.namespace == Namespaces.Peer.CloudUser || id.peerId.namespace == Namespaces.Peer.CloudGroup {
         return network.request(Api.functions.messages.readMessageContents(id: [id.id]))
         |> map(Optional.init)

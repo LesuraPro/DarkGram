@@ -721,7 +721,9 @@ public final class AccountViewTracker {
                             guard let peer = transaction.getPeer(peerId), let inputPeer = apiInputPeer(peer) else {
                                 return .complete()
                             }
-                            return account.network.request(Api.functions.messages.getMessagesViews(peer: inputPeer, id: messageIds.map { $0.id }, increment: .boolTrue))
+                            // MARK: DarkGram - still read the counts, just do not add ourselves to them.
+                            let darkGramIncrement: Api.Bool = SGSimpleSettings.shared.isGhostModeActive(forPeerId: peerId.toInt64()) ? .boolFalse : .boolTrue
+                            return account.network.request(Api.functions.messages.getMessagesViews(peer: inputPeer, id: messageIds.map { $0.id }, increment: darkGramIncrement))
                             |> map(Optional.init)
                             |> `catch` { _ -> Signal<Api.messages.MessageViews?, NoError> in
                                 return .single(nil)
