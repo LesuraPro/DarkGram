@@ -182,7 +182,13 @@ public func darkGramShowDiagnostics(lang: String) {
     guard let presenter = darkGramTopViewController() else {
         return
     }
-    let report = DarkGramDiagnostics.shared.lastFailureReport()
+    var report = DarkGramDiagnostics.shared.lastFailureReport()
+    if let seconds = DarkGramDiagnostics.shared.lastLaunchSeconds {
+        // Shown even when nothing crashed: this is the number to argue with when the app
+        // feels slow, and an impression is not something anyone can act on.
+        let line = "Launch.Duration".i18n(lang) + ": " + String(format: "%.1f", seconds) + " s"
+        report = report.map({ line + "\n\n" + $0 }) ?? line
+    }
     let alert = UIAlertController(
         title: "SettingsBackup.Diagnostics.Title".i18n(lang),
         message: report ?? "SettingsBackup.Diagnostics.Clean".i18n(lang),

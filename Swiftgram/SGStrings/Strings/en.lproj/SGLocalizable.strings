@@ -411,3 +411,4 @@
 "DangerousFile.Script" = "This is a script. It is inert on iOS, but it will run if you open it on a computer.";
 "DangerousFile.Open" = "Open anyway";
 "DangerousFile.Cancel" = "Cancel";
+"Launch.Duration" = "Last launch took";

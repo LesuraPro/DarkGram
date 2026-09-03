@@ -406,3 +406,4 @@
 "DangerousFile.Script" = "Это скрипт. На iOS он безвреден, но выполнится, если открыть его на компьютере.";
 "DangerousFile.Open" = "Всё равно открыть";
 "DangerousFile.Cancel" = "Отмена";
+"Launch.Duration" = "Последний запуск занял";

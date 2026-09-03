@@ -18,14 +18,19 @@ public final class DarkGramDiagnostics {
     private let runningKey = "darkgram.diag.running"
     private let exceptionKey = "darkgram.diag.lastException"
     private let crashedAtKey = "darkgram.diag.lastUncleanExit"
+    private let launchKey = "darkgram.diag.lastLaunchSeconds"
 
     /// True when the previous run did not shut down cleanly: a crash, or a watchdog kill.
     public private(set) var previousRunEndedBadly = false
+
+    /// Set when begin() runs, which is the earliest point our own code executes.
+    private var launchStartedAt: Double?
 
     private init() {}
 
     /// Call once at launch, before anything else can fail.
     public func begin() {
+        self.launchStartedAt = CFAbsoluteTimeGetCurrent()
         let defaults = UserDefaults.standard
         // A flag still set from last time means that run never reached its clean exit.
         self.previousRunEndedBadly = defaults.bool(forKey: self.runningKey)
@@ -44,6 +49,26 @@ public final class DarkGramDiagnostics {
             UserDefaults.standard.set(text, forKey: "darkgram.diag.lastException")
             UserDefaults.standard.synchronize()
         }
+    }
+
+    /// Call when the chat list is on screen, which is when the app is usable.
+    ///
+    /// Measured from begin() rather than from process start: everything before our first
+    /// line is the system loading the binary, which we cannot observe from inside and
+    /// cannot influence either. The number is labelled accordingly.
+    public func markInterfaceReady() {
+        guard let started = self.launchStartedAt else {
+            return
+        }
+        self.launchStartedAt = nil
+        let seconds = CFAbsoluteTimeGetCurrent() - started
+        UserDefaults.standard.set(seconds, forKey: self.launchKey)
+    }
+
+    /// How long the last launch took to reach a usable chat list.
+    public var lastLaunchSeconds: Double? {
+        let value = UserDefaults.standard.double(forKey: self.launchKey)
+        return value > 0 ? value : nil
     }
 
     /// Call when the app terminates or goes to the background.

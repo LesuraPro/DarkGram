@@ -2394,6 +2394,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
         super.viewDidAppear(animated)
 
         // MARK: DarkGram - say something the first time an unfamiliar session shows up.
+        DarkGramDiagnostics.shared.markInterfaceReady()
         darkGramCheckForNewSessions(context: self.context, present: { [weak self] controller in
             self?.present(controller, in: .window(.root))
         })
