@@ -435,7 +435,10 @@ public class SGSimpleSettings {
         Keys.duckyAppIconAvailable.rawValue: true,
         Keys.transcriptionBackend.rawValue: TranscriptionBackend.default.rawValue,
         Keys.translationBackend.rawValue: TranslationBackend.default.rawValue,
-        Keys.customAppBadge.rawValue: "",
+        // DarkGram: Titanium by default. The window reads this in its initialiser, before
+        // the Pro status is known, so leaving it empty sent the badge down the fallback
+        // branch on every launch -- which is what made the chosen one look like it reset.
+        Keys.customAppBadge.rawValue: "TitaniumAppBadge",
         Keys.canUseNY.rawValue: false,
         Keys.nyStyle.rawValue: NYStyle.default.rawValue,
         Keys.wideTabBar.rawValue: false,
