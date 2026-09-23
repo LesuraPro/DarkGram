@@ -3233,7 +3233,16 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
                     }
                     attributedText = textString
             }
-            
+
+            // MARK: DarkGram - keep the last message out of sight of whoever is next to you.
+            // Done before the thumbnails are measured, so no empty gap is left where one was.
+            // Search results still show text: searching is the moment the reader wants it.
+            if SGSimpleSettings.shared.hideChatPreviews, item.interaction.searchTextHighightState == nil, case .peer = item.content {
+                attributedText = NSAttributedString(string: "•••", font: textFont, textColor: theme.messageTextColor)
+                contentImageSpecs.removeAll()
+                avatarContentImageSpec = nil
+            }
+
             switch messageTypeIcon {
             case let .call(type, direction):
                 switch type {

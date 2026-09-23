@@ -82,6 +82,7 @@ private final class DarkGramSessionWatch {
                 line += "\n" + origin
             }
             lines.append(line)
+            DarkGramSecurityLog.shared.append(kind: "session", detail: line.replacingOccurrences(of: "\n", with: ", "))
         }
 
         let controller = textAlertController(

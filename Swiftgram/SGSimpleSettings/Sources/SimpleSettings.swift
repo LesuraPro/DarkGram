@@ -241,6 +241,13 @@ public class SGSimpleSettings {
         case trackNameChanges
         case nameChangeLog
         case stripLinkTracking
+        case checkLinkAddress
+        case blockedDomains
+        case warnFileMetadata
+        case guardLoginCode
+        case hideChatPreviews
+        case privacyBlur
+        case securityLog
         case perChatGhostPeerIds
         case inputToolbar
         case pinnedMessageNotifications
@@ -428,6 +435,14 @@ public class SGSimpleSettings {
         Keys.trackNameChanges.rawValue: true,
         Keys.nameChangeLog.rawValue: "",
         Keys.stripLinkTracking.rawValue: true,
+        // Silent unless something is actually wrong, so the protective ones default on.
+        Keys.checkLinkAddress.rawValue: true,
+        Keys.blockedDomains.rawValue: "",
+        Keys.warnFileMetadata.rawValue: true,
+        Keys.guardLoginCode.rawValue: true,
+        Keys.hideChatPreviews.rawValue: false,
+        Keys.privacyBlur.rawValue: false,
+        Keys.securityLog.rawValue: "",
         Keys.perChatGhostPeerIds.rawValue: [],
         Keys.inputToolbar.rawValue: false,
         Keys.primaryUserId.rawValue: "",
@@ -821,6 +836,30 @@ public class SGSimpleSettings {
 
     @UserDefault(key: Keys.stripLinkTracking.rawValue)
     public var stripLinkTracking: Bool
+
+    // MARK: DarkGram - second security batch.
+    @UserDefault(key: Keys.checkLinkAddress.rawValue)
+    public var checkLinkAddress: Bool
+
+    /// Domains the user refuses to open, separated by commas, spaces or newlines.
+    @UserDefault(key: Keys.blockedDomains.rawValue)
+    public var blockedDomains: String
+
+    @UserDefault(key: Keys.warnFileMetadata.rawValue)
+    public var warnFileMetadata: Bool
+
+    @UserDefault(key: Keys.guardLoginCode.rawValue)
+    public var guardLoginCode: Bool
+
+    @UserDefault(key: Keys.hideChatPreviews.rawValue)
+    public var hideChatPreviews: Bool
+
+    @UserDefault(key: Keys.privacyBlur.rawValue)
+    public var privacyBlur: Bool
+
+    /// JSON array of security events, newest last. Written only through DarkGramSecurityLog.
+    @UserDefault(key: Keys.securityLog.rawValue)
+    public var securityLog: String
 
     /// MARK: DarkGram - peers that are always treated as ghosted, whatever the global switch says.
     @UserDefault(key: Keys.perChatGhostPeerIds.rawValue)

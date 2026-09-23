@@ -117,6 +117,7 @@ func darkGramRecordNameChange(previous: Peer?, updated: Peer) {
         "u": before.username,
         "U": after.username
     ])
+    DarkGramSecurityLog.shared.append(kind: "rename", detail: before.name + " -> " + after.name)
 }
 
 public func darkGramNameChanges(forPeerId peerId: Int64) -> [DarkGramNameChange] {

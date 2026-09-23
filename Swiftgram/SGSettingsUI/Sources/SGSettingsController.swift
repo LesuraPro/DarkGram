@@ -78,6 +78,11 @@ private enum SGBoolSetting: String {
     case sessionWatchEnabled
     case trackNameChanges
     case stripLinkTracking
+    case checkLinkAddress
+    case guardLoginCode
+    case warnFileMetadata
+    case hideChatPreviews
+    case privacyBlur
     case confirmSendToGroup
     case disableSwipeToRecordStory
     case disableDeleteChatSwipeOption
@@ -150,6 +155,8 @@ private enum SGDisclosureLink: String {
     case moreFeatures
     case privacyAudit
     case connectionInfo
+    case blockedDomains
+    case securityLog
     case exportSettings
     case importSettings
     case diagnostics
@@ -240,6 +247,18 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.NameChanges.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .stripLinkTracking, value: SGSimpleSettings.shared.stripLinkTracking, text: i18n("Settings.Protection.LinkTracking", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.LinkTracking.Notice", lang)))
+    // MARK: DarkGram - second batch: what a link really points at, what is about to be sent,
+    // and who can see the screen.
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .checkLinkAddress, value: SGSimpleSettings.shared.checkLinkAddress, text: i18n("Settings.Protection.LinkAddress", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.LinkAddress.Notice", lang)))
+    entries.append(.disclosure(id: id.count, section: .protection, link: .blockedDomains, text: i18n("Settings.Protection.BlockedDomains", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .guardLoginCode, value: SGSimpleSettings.shared.guardLoginCode, text: i18n("Settings.Protection.LoginCode", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.LoginCode.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .warnFileMetadata, value: SGSimpleSettings.shared.warnFileMetadata, text: i18n("Settings.Protection.FileLocation", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.FileLocation.Notice", lang)))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .hideChatPreviews, value: SGSimpleSettings.shared.hideChatPreviews, text: i18n("Settings.Protection.HidePreviews", lang), enabled: true))
+    entries.append(.toggle(id: id.count, section: .protection, settingName: .privacyBlur, value: SGSimpleSettings.shared.privacyBlur, text: i18n("Settings.Protection.PrivacyBlur", lang), enabled: true))
+    entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.Protection.Screen.Notice", lang)))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.History.BypassCopyProtection.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .protection, settingName: .confirmSendToGroup, value: SGSimpleSettings.shared.confirmSendToGroup, text: i18n("Settings.ConfirmSend", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .protection, text: i18n("Settings.ConfirmSend.Notice", lang)))
@@ -269,6 +288,7 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     }
     entries.append(.disclosure(id: id.count, section: .diagnostics, link: .privacyAudit, text: i18n("Privacy.Audit.Title", lang)))
     entries.append(.disclosure(id: id.count, section: .diagnostics, link: .connectionInfo, text: i18n("Connection.Title", lang)))
+    entries.append(.disclosure(id: id.count, section: .diagnostics, link: .securityLog, text: i18n("SecurityLog.Title", lang)))
     entries.append(.disclosure(id: id.count, section: .diagnostics, link: .diagnostics, text: i18n("Settings.Diagnostics.LastFailure", lang)))
     entries.append(.notice(id: id.count, section: .diagnostics, text: i18n("Settings.Diagnostics.Notice", lang)))
 
@@ -543,6 +563,16 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
             SGSimpleSettings.shared.trackNameChanges = value
         case .stripLinkTracking:
             SGSimpleSettings.shared.stripLinkTracking = value
+        case .checkLinkAddress:
+            SGSimpleSettings.shared.checkLinkAddress = value
+        case .guardLoginCode:
+            SGSimpleSettings.shared.guardLoginCode = value
+        case .warnFileMetadata:
+            SGSimpleSettings.shared.warnFileMetadata = value
+        case .hideChatPreviews:
+            SGSimpleSettings.shared.hideChatPreviews = value
+        case .privacyBlur:
+            SGSimpleSettings.shared.privacyBlur = value
         case .confirmSendToGroup:
             SGSimpleSettings.shared.confirmSendToGroup = value
         case .disableSwipeToRecordStory:
@@ -856,6 +886,10 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
                 darkGramShowPrivacyAudit(context: context, lang: currentLang)
             case .connectionInfo:
                 darkGramShowConnectionInfo(context: context, lang: currentLang)
+            case .blockedDomains:
+                darkGramEditBlockedDomains(lang: currentLang)
+            case .securityLog:
+                darkGramShowSecurityLog(lang: currentLang)
             case .languageSettings:
                 pushControllerImpl?(context.sharedContext.makeLocalizationListController(context: context))
             case .contentSettings:

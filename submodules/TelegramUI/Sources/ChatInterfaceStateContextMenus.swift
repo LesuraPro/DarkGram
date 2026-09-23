@@ -1607,6 +1607,17 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             sgActions.append(showEditHistoryAction)
         }
 
+        // MARK: DarkGram - the hash of an attached file, for checking it without opening it.
+        if let darkGramFile = message.media.first(where: { $0 is TelegramMediaFile }) as? TelegramMediaFile, darkGramCanShowFileHash(darkGramFile) {
+            let fileHashAction: ContextMenuItem = .action(ContextMenuActionItem(text: "SHA-256", icon: { theme in
+                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Settings"), color: theme.actionSheet.primaryTextColor)
+            }, action: { _, f in
+                darkGramShowFileHash(controllerInteraction: controllerInteraction, chatPresentationInterfaceState: chatPresentationInterfaceState, context: context, file: darkGramFile)
+                f(.default)
+            }))
+            sgActions.append(fileHashAction)
+        }
+
         // MARK: DarkGram - give the message author a local name. Purely local: the contact's
         // real name on the server is untouched, and the alias replaces it everywhere a title
         // is drawn because both display-title accessors consult it.

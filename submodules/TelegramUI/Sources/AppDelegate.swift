@@ -231,6 +231,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     @objc var window: UIWindow?
     var nativeWindow: (UIWindow & WindowHost)?
     var mainWindow: Window1!
+    // MARK: DarkGram - the blur laid over the window while the app is not active.
+    private var darkGramPrivacyCover: UIView?
     private var dataImportSplash: LegacyDataImportSplash?
     private var memoryUsageOverlayView: UILabel?
     
@@ -1991,6 +1993,16 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         self.isActiveValue = false
         self.isActivePromise.set(false)
         self.clearNotificationsManager?.commitNow()
+
+        // MARK: DarkGram - the app switcher shows a snapshot taken right after this, and that
+        // snapshot is what anyone flipping through your apps sees. Cover it before it is taken.
+        if SGSimpleSettings.shared.privacyBlur, self.darkGramPrivacyCover == nil, let window = self.window {
+            let cover = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
+            cover.frame = window.bounds
+            cover.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            window.addSubview(cover)
+            self.darkGramPrivacyCover = cover
+        }
         
         if let navigationController = self.mainWindow.viewController as? NavigationController {
             for controller in navigationController.viewControllers {
@@ -2106,6 +2118,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
+        // MARK: DarkGram - removed unconditionally, so switching the setting off while a cover
+        // is up can never leave the window blurred.
+        self.darkGramPrivacyCover?.removeFromSuperview()
+        self.darkGramPrivacyCover = nil
+
         self.isInForegroundValue = true
         self.isInForegroundPromise.set(true)
         self.isActiveValue = true

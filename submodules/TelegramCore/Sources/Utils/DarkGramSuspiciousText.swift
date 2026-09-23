@@ -213,3 +213,197 @@ public func darkGramDangerousFileKind(_ fileName: String?) -> String? {
     let ext = String(sanitized[sanitized.index(after: dot)...]).lowercased()
     return darkGramDangerousExtensions[ext]
 }
+
+// MARK: DarkGram
+//
+// Links whose address does not say where they go.
+//
+// The tracking filter above cleans a link; this reads it. Each case below is a way of making
+// the part of an address a person glances at differ from the part a browser acts on:
+//
+//   - "https://sberbank.ru@evil.example/" -- everything before the @ is a login name the
+//     browser discards. The host is evil.example.
+//   - "xn--80ak6aa92e.com" -- punycode, the ASCII spelling of a non-Latin domain. It is how a
+//     look-alike domain appears when it is copied rather than rendered.
+//   - "аpple.com" with a Cyrillic "а" -- one label mixing alphabets that look identical.
+//   - a bare IP address -- no name to recognise at all, which ordinary sites never need.
+//
+// The host is taken apart by hand rather than with URLComponents, whose handling of
+// non-ASCII hosts and user-info has changed between iOS releases. A check that silently stops
+// seeing the host after an OS update is worse than none.
+
+public enum DarkGramLinkWarning: String {
+    case blockedDomain
+    case userInfo
+    case punycode
+    case mixedScripts
+    case ipAddress
+}
+
+public struct DarkGramLinkInspection {
+    public let host: String
+    public let warnings: [DarkGramLinkWarning]
+
+    public var isBlocked: Bool {
+        return self.warnings.contains(.blockedDomain)
+    }
+}
+
+/// The authority and whether it carried user-info, for http(s) and scheme-less links only.
+private func darkGramLinkAuthority(_ url: String) -> (host: String, hadUserInfo: Bool)? {
+    var rest = url.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let schemeRange = rest.range(of: "://") {
+        let scheme = rest[..<schemeRange.lowerBound].lowercased()
+        guard scheme == "http" || scheme == "https" else {
+            return nil
+        }
+        rest = String(rest[schemeRange.upperBound...])
+    } else if rest.contains(":") && !rest.contains(".") {
+        // mailto:, tel: and similar carry no host to judge.
+        return nil
+    }
+    if let end = rest.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" }) {
+        rest = String(rest[..<end])
+    }
+    var hadUserInfo = false
+    if let at = rest.lastIndex(of: "@") {
+        hadUserInfo = true
+        rest = String(rest[rest.index(after: at)...])
+    }
+    if rest.hasPrefix("[") {
+        // IPv6 literal; the brackets are the whole host.
+        if let close = rest.firstIndex(of: "]") {
+            return (String(rest[...close]).lowercased(), hadUserInfo)
+        }
+        return (rest.lowercased(), hadUserInfo)
+    }
+    if let colon = rest.lastIndex(of: ":") {
+        let port = rest[rest.index(after: colon)...]
+        if !port.isEmpty && port.allSatisfy({ $0.isASCII && $0.isNumber }) {
+            rest = String(rest[..<colon])
+        }
+    }
+    let host = rest.lowercased()
+    if host.isEmpty {
+        return nil
+    }
+    return (host, hadUserInfo)
+}
+
+private func darkGramIsIPv4(_ host: String) -> Bool {
+    let parts = host.split(separator: ".", omittingEmptySubsequences: false)
+    guard parts.count == 4 else {
+        return false
+    }
+    return parts.allSatisfy { part in
+        return !part.isEmpty && part.count <= 3 && part.allSatisfy({ $0.isASCII && $0.isNumber })
+    }
+}
+
+/// The user's blocklist, normalised. A leading "*." or a pasted scheme is tolerated, since
+/// that is how people copy domains around.
+public func darkGramBlockedDomains() -> [String] {
+    let separators = CharacterSet(charactersIn: ", ;").union(.whitespacesAndNewlines)
+    return SGSimpleSettings.shared.blockedDomains
+        .components(separatedBy: separators)
+        .compactMap { raw -> String? in
+            var domain = raw.lowercased()
+            if let schemeRange = domain.range(of: "://") {
+                domain = String(domain[schemeRange.upperBound...])
+            }
+            if domain.hasPrefix("*.") {
+                domain = String(domain.dropFirst(2))
+            }
+            while domain.hasSuffix("/") || domain.hasSuffix(".") {
+                domain = String(domain.dropLast())
+            }
+            return domain.isEmpty ? nil : domain
+        }
+}
+
+public func darkGramInspectLink(_ url: String) -> DarkGramLinkInspection? {
+    guard let authority = darkGramLinkAuthority(url) else {
+        return nil
+    }
+    let host = authority.host
+    var warnings: [DarkGramLinkWarning] = []
+
+    // The blocklist is the user's own decision, so it applies whether or not the address
+    // checks are switched on.
+    for domain in darkGramBlockedDomains() {
+        if host == domain || host.hasSuffix("." + domain) {
+            warnings.append(.blockedDomain)
+            break
+        }
+    }
+
+    if SGSimpleSettings.shared.checkLinkAddress {
+        if authority.hadUserInfo {
+            warnings.append(.userInfo)
+        }
+        if host.hasPrefix("[") || darkGramIsIPv4(host) {
+            warnings.append(.ipAddress)
+        } else {
+            let labels = host.split(separator: ".")
+            if labels.contains(where: { $0.hasPrefix("xn--") }) {
+                warnings.append(.punycode)
+            }
+            let mixes = labels.contains { label in
+                var scripts = Set<Int>()
+                for scalar in label.unicodeScalars {
+                    if let script = darkGramScript(of: scalar) {
+                        scripts.insert(script.rawValue)
+                    }
+                }
+                return scripts.count > 1
+            }
+            if mixes {
+                warnings.append(.mixedScripts)
+            }
+        }
+    }
+
+    return DarkGramLinkInspection(host: host, warnings: warnings)
+}
+
+// MARK: DarkGram
+//
+// Accounts that present themselves as a service.
+//
+// "Telegram Support", "Служба безопасности", "@premium_notify": nobody official writes to you
+// from an unverified account, and every account that claims to is running the same script --
+// ask for the login code, or for a payment, before something is "blocked". Telegram marks
+// verified accounts and the scam ones it has already caught; this covers the gap in between,
+// an unverified name that claims authority.
+//
+// Latin terms are also matched after folding Cyrillic look-alikes, so "Tеlеgram" with Cyrillic
+// "е" does not slip past the very check meant for it.
+
+private let darkGramServiceTermsLatin: [String] = [
+    // Kept to words that claim authority. "admin" or "premium" alone would flag every
+    // badminton club and every shop, and a warning that is usually wrong stops being read.
+    "telegram", "support", "security", "official", "administrator", "moderator",
+    "notification", "verify", "verification"
+]
+
+private let darkGramServiceTermsCyrillic: [String] = [
+    "телеграм", "поддержк", "безопасност", "официальн", "администрац",
+    "модератор", "служба", "уведомлен", "верификац"
+]
+
+private let darkGramLatinLookalikes: [Character: Character] = [
+    "а": "a", "в": "b", "е": "e", "к": "k", "м": "m", "н": "h", "о": "o",
+    "р": "p", "с": "c", "т": "t", "у": "y", "х": "x", "і": "i", "ѕ": "s"
+]
+
+public func darkGramImitatesService(name: String, username: String) -> Bool {
+    let text = (darkGramSanitizedName(name) + " " + username).lowercased()
+    for term in darkGramServiceTermsCyrillic where text.contains(term) {
+        return true
+    }
+    let folded = String(text.map({ darkGramLatinLookalikes[$0] ?? $0 }))
+    for term in darkGramServiceTermsLatin where folded.contains(term) {
+        return true
+    }
+    return false
+}

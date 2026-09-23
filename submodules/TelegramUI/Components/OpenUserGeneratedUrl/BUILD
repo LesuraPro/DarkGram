@@ -22,6 +22,8 @@ swift_library(
         "//submodules/TelegramUI/Components/AlertComponent/AlertCheckComponent",
         "//submodules/TelegramUI/Components/AlertComponent/AlertWebpagePreviewComponent",
         "//submodules/UrlHandling",
+        "//Swiftgram/SGSimpleSettings:SGSimpleSettings",
+        "//Swiftgram/SGStrings:SGStrings",
     ],
     visibility = [
         "//visibility:public",

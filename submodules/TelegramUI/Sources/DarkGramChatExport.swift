@@ -377,9 +377,19 @@ public func darkGramShowChatInfo(
             if user.flags.contains(.isFake) {
                 signals.append(i18n("ChatInfo.Signal.Fake", lang))
             }
+            // MARK: DarkGram - an unverified account whose name claims to be a service.
+            if !user.flags.contains(.isVerified), user.id.id._internalGetInt64Value() != 777000,
+               darkGramImitatesService(name: [user.firstName, user.lastName].compactMap({ $0 }).joined(separator: " "), username: user.username ?? "") {
+                signals.append(i18n("ChatInfo.Signal.Impersonation", lang))
+            }
             if !signals.isEmpty {
                 lines.append(i18n("ChatInfo.Signals", lang) + ": " + signals.joined(separator: ", "))
             }
+        }
+        // A channel is the usual vehicle for a fake "official" announcement.
+        if let channel = peer as? TelegramChannel, !channel.flags.contains(.isVerified),
+           darkGramImitatesService(name: channel.title, username: channel.username ?? "") {
+            lines.append(i18n("ChatInfo.Signals", lang) + ": " + i18n("ChatInfo.Signal.Impersonation", lang))
         }
         // Renames are recorded for channels and groups too, not only users.
         let renames = darkGramNameChanges(forPeerId: peerId.toInt64())

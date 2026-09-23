@@ -436,6 +436,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     // MARK: DarkGram - set while re-entering sendMessages after the user confirmed,
     // so the confirmation is asked once rather than looping.
     private var darkGramConfirmedSend = false
+    // MARK: DarkGram - the same re-entry guard for the login-code and photo-location checks.
+    private var darkGramPassedSendChecks = false
     var presentationDataPromise = Promise<PresentationData>()
     override public var updatedPresentationData: (PresentationData, Signal<PresentationData, NoError>) {
         return (self.presentationData, self.presentationDataPromise.get())
@@ -9038,6 +9040,40 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     }
     
     func sendMessages(_ messages: [EnqueueMessage], media: Bool = false, postpone: Bool = false, commit: Bool = false) {
+        // MARK: DarkGram - login code and photo location. Only messages that could possibly be
+        // affected take the asynchronous path; everything else falls straight through.
+        if !self.darkGramPassedSendChecks, let darkGramPeerId = self.chatLocation.peerId, darkGramSendNeedsCheck(messages) {
+            let darkGramLang = self.presentationData.strings.baseLanguageCode
+            let _ = (darkGramSendWarnings(context: self.context, peerId: darkGramPeerId, messages: messages, lang: darkGramLang)
+            |> deliverOnMainQueue).startStandalone(next: { [weak self] warnings in
+                guard let self else {
+                    return
+                }
+                let proceed: () -> Void = { [weak self] in
+                    guard let self else {
+                        return
+                    }
+                    self.darkGramPassedSendChecks = true
+                    self.sendMessages(messages, media: media, postpone: postpone, commit: commit)
+                    self.darkGramPassedSendChecks = false
+                }
+                if warnings.isEmpty {
+                    proceed()
+                    return
+                }
+                self.present(textAlertController(
+                    context: self.context,
+                    updatedPresentationData: self.updatedPresentationData,
+                    title: i18n("SendCheck.Title", darkGramLang),
+                    text: warnings.joined(separator: "\n\n"),
+                    actions: [
+                        TextAlertAction(type: .defaultAction, title: self.presentationData.strings.Common_Cancel, action: {}),
+                        TextAlertAction(type: .destructiveAction, title: i18n("SendCheck.SendAnyway", darkGramLang), action: proceed)
+                    ]
+                ), in: .window(.root))
+            })
+            return
+        }
         // MARK: DarkGram - confirm before posting into a group or channel, where sending to the
         // wrong chat is both easy and public. One-to-one chats are left alone: a prompt on every
         // private message would be unusable.
@@ -9057,8 +9093,12 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                         guard let self else {
                             return
                         }
+                        // The login-code and location checks ran before this prompt; do not
+                        // ask them a second time on the way back in.
                         self.darkGramConfirmedSend = true
+                        self.darkGramPassedSendChecks = true
                         self.sendMessages(messages, media: media, postpone: postpone, commit: commit)
+                        self.darkGramPassedSendChecks = false
                         self.darkGramConfirmedSend = false
                     })
                 ]

@@ -12,6 +12,8 @@ import AlertComponent
 import AlertCheckComponent
 import AlertWebpagePreviewComponent
 import UrlHandling
+import SGSimpleSettings
+import SGStrings
 
 public func openUserGeneratedUrl(
     context: AccountContext,
@@ -38,6 +40,33 @@ public func openUserGeneratedUrl(
     var presentationData = context.sharedContext.currentPresentationData.with { $0 }
     if forceDark {
         presentationData = presentationData.withUpdated(theme: defaultDarkColorPresentationTheme)
+    }
+
+    // MARK: DarkGram - read the address before anything is resolved or opened. A blocked domain
+    // stops here; anything else suspicious forces the confirmation below, with the reason in it.
+    let darkGramLang = presentationData.strings.baseLanguageCode
+    let darkGramLink = darkGramInspectLink(url)
+    if let darkGramLink, darkGramLink.isBlocked {
+        DarkGramSecurityLog.shared.append(kind: "blockedLink", detail: darkGramLink.host)
+        let blockedController = AlertScreen(
+            content: [
+                AnyComponentWithIdentity(id: "title", component: AnyComponent(AlertTitleComponent(title: i18n("LinkCheck.Blocked.Title", darkGramLang)))),
+                AnyComponentWithIdentity(id: "text", component: AnyComponent(AlertTextComponent(
+                    content: .plain(i18n("LinkCheck.Blocked.Text", darkGramLang) + "\n" + darkGramLink.host),
+                    alignment: .center
+                )))
+            ],
+            actions: [
+                .init(title: presentationData.strings.Common_OK)
+            ],
+            updatedPresentationData: (presentationData, context.sharedContext.presentationData)
+        )
+        present(blockedController)
+        return EmptyDisposable
+    }
+    let darkGramWarnings = darkGramLink?.warnings ?? []
+    if let darkGramLink, !darkGramWarnings.isEmpty {
+        DarkGramSecurityLog.shared.append(kind: "suspiciousLink", detail: darkGramLink.host + " (" + darkGramWarnings.map({ $0.rawValue }).joined(separator: ", ") + ")")
     }
 
     let openImpl: () -> Disposable = {
@@ -115,7 +144,7 @@ public func openUserGeneratedUrl(
         }
     }
 
-    if concealed && !skipConcealedAlert {
+    if (concealed && !skipConcealedAlert) || !darkGramWarnings.isEmpty {
         var rawDisplayUrl: String = parsedString
         let maxLength = 180
         if rawDisplayUrl.count > maxLength {
@@ -138,6 +167,15 @@ public func openUserGeneratedUrl(
             style: .background(.default),
             insets: UIEdgeInsets(top: 9.0, left: 4.0, bottom: 0.0, right: 4.0)
         ))))
+        if !darkGramWarnings.isEmpty {
+            let darkGramLines = darkGramWarnings.map({ "• " + i18n("LinkCheck.Warning." + $0.rawValue, darkGramLang) })
+            content.append(AnyComponentWithIdentity(id: "darkGramWarning", component: AnyComponent(AlertTextComponent(
+                content: .plain(darkGramLines.joined(separator: "\n")),
+                alignment: .default,
+                color: .destructive,
+                insets: UIEdgeInsets(top: 9.0, left: 4.0, bottom: 0.0, right: 4.0)
+            ))))
+        }
         if let webpage, case .Loaded = webpage.content {
             content.append(AnyComponentWithIdentity(id: "webpagePreview", component: AnyComponent(AlertWebpagePreviewComponent(
                 context: context,
